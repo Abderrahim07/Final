@@ -630,6 +630,39 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </button>
     </div>
 
+    <!-- Génération par IA (visible si stratégie IA sélectionnée) -->
+    <div class="card" id="ai-generate-card" style="display:none">
+      <div class="card-head">
+        <div class="card-title">🤖 Génération par IA</div>
+        <div class="card-sub">Claude (AWS Bedrock) analyse vos requirements et signaux I/O pour générer MC/DC + tests BVA</div>
+      </div>
+
+      <button class="btn-primary" id="btn-ai-generate" onclick="generateTestsWithAI()"
+        style="width:100%;justify-content:center">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2a4 4 0 0 1 4 4v1a4 4 0 0 1-4 4 4 4 0 0 1-4-4V6a4 4 0 0 1 4-4z"/>
+          <path d="M6 12v2a6 6 0 0 0 12 0v-2M12 20v2"/>
+        </svg>
+        Générer les tests avec Claude
+      </button>
+
+      <div id="ai-status-bar" style="display:none;margin-top:12px;padding:12px 16px;
+           background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
+           font-family:var(--mono);font-size:11px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div id="ai-dot" style="width:8px;height:8px;border-radius:50%;background:var(--amber)"></div>
+            <span id="ai-status-text" style="color:var(--text2)">En attente...</span>
+          </div>
+        </div>
+        <div style="margin-top:8px;height:3px;background:var(--border2);border-radius:2px;overflow:hidden">
+          <div id="ai-progress" style="height:100%;width:0%;
+               background:linear-gradient(90deg,var(--accent),var(--purple));
+               border-radius:2px;transition:width .5s"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Scénarios disponibles (visible si upload CSV ou stratégie IA) -->
     <div class="card" id="scenarios-list-card" style="display:none">
       <div class="card-head">
@@ -901,7 +934,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
 <script>
 // ══════════════════════════
-const API = 'https://e9rne0vrik.execute-api.eu-west-3.amazonaws.com/prod';
+const API = 'https://jmr7zwjdri.execute-api.us-east-1.amazonaws.com/prod';
 const DEMO = API.includes('XXXXXXXX');
 // ══════════════════════════
 
@@ -1141,7 +1174,7 @@ function renderScenarioList(){
       :sc.status==='fail'?'<span class="tag tag-red">FAIL</span>'
       :sc.status==='running'?'<span class="tag tag-cyan">EN COURS</span>'
       :'<span class="tag tag-gray">EN ATTENTE</span>';
-    const hasVector = testVectors.find(v => v.scenario === sc.name) || sc.test_vector;
+    const hasVector = testVectors.find(v => v.scenario === sc.name) || sc.test_vector || testVectors[i];
     item.innerHTML = `
       <div class="video-thumb-mini" id="s3thumb-${i}">
         <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg4)">
@@ -1424,10 +1457,12 @@ function selectStrategy(n){
   document.getElementById('str1').classList.toggle('selected',n===1);
   // Mes propres tests
   document.getElementById('manual-tests-card').style.display  = n===0?'block':'none';
-  // IA → afficher directement la liste scénarios
+  // IA → afficher le bouton de génération + la liste scénarios
+  document.getElementById('ai-generate-card').style.display   = n===1?'block':'none';
   document.getElementById('scenarios-list-card').style.display= n===1?'block':'none';
   // Reset sous-mode
   if(n===0){
+    document.getElementById('ai-generate-card').style.display = 'none';
     document.getElementById('sub-upload-card').style.display  = 'none';
     document.getElementById('sub-manual-card').style.display  = 'none';
     document.getElementById('scenarios-list-card').style.display='none';
@@ -1436,6 +1471,100 @@ function selectStrategy(n){
     // Peupler le select vidéo
     manPopulateVideoSelect();
   }
+}
+
+// ══════════════════════════════════════════════
+// GÉNÉRATION DE TESTS PAR IA (Bedrock — vecu-generate-tests)
+// ══════════════════════════════════════════════
+function setAiStatus(type, message, progress){
+  const bar  = document.getElementById('ai-status-bar');
+  const dot  = document.getElementById('ai-dot');
+  const text = document.getElementById('ai-status-text');
+  const prog = document.getElementById('ai-progress');
+  bar.style.display = 'block';
+  text.textContent  = message;
+  prog.style.width  = progress+'%';
+  const colors = { running:'var(--amber)', done:'var(--green)', failed:'var(--red)' };
+  dot.style.background = colors[type] || 'var(--text3)';
+  dot.style.animation   = type==='running' ? 'pulse 1s infinite' : 'none';
+  text.style.color      = colors[type] || 'var(--text2)';
+}
+
+async function generateTestsWithAI(){
+  if(!PROJECT_ID && !DEMO){ showToast('⚠️ Crée d\'abord un projet','error'); return; }
+
+  const btn = document.getElementById('btn-ai-generate');
+  btn.disabled = true;
+  setAiStatus('running','Démarrage du job de génération...',5);
+
+  if(DEMO){
+    // Simulation — utile pour tester le flow sans backend Bedrock déployé
+    await sleep(800);  setAiStatus('running','Lecture de l\'interface I/O...',20);
+    await sleep(1000); setAiStatus('running','Génération MC/DC...',35);
+    await sleep(1000); setAiStatus('running','Indexation RAG...',50);
+    await sleep(1500); setAiStatus('running','Génération via Claude (Bedrock)...',75);
+    await sleep(1200); setAiStatus('running','Conversion des scénarios...',90);
+    await sleep(600);
+    const fakeVectors = [
+      {scenario:'MCDC_BASE', vehicle_speed:'54', system_ct:'1', expected_System_Active:'1'},
+      {scenario:'MCDC_V1',   vehicle_speed:'0',  system_ct:'1', expected_System_Active:'0'},
+      {scenario:'TC-ST01-001', vehicle_speed:'12', system_ct:'1', expected_System_Active:'1', expected_Warning_Left:'0'}
+    ];
+    testVectors = fakeVectors;
+    setAiStatus('done', `✅ ${fakeVectors.length} tests générés (simulation)`, 100);
+    showToast(`✅ ${fakeVectors.length} tests générés — associés aux scénarios vidéo`,'success');
+    renderScenarioList();
+    btn.disabled = false;
+    return;
+  }
+
+  try{
+    const resp = await fetch(`${API}/projects/${PROJECT_ID}/generate-tests`, { method:'POST' });
+    let data = JSON.parse(await resp.text());
+    if(data.body && typeof data.body==='string') data = JSON.parse(data.body);
+    if(!data.job_id) throw new Error('job_id manquant');
+
+    setAiStatus('running','Job lancé — génération en cours (~1-3 min)...',15);
+    await pollGenerateStatus(data.job_id);
+
+  }catch(e){
+    setAiStatus('failed','❌ Erreur : '+e.message,0);
+    showToast('❌ '+e.message,'error',6000);
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+async function pollGenerateStatus(jobId){
+  const maxAttempts = 60; // 60 × 5s = 5 min
+  for(let i=0; i<maxAttempts; i++){
+    await sleep(5000);
+    try{
+      const resp = await fetch(`${API}/projects/${PROJECT_ID}/generate-status?job_id=${jobId}`);
+      let data = JSON.parse(await resp.text());
+      if(data.body && typeof data.body==='string') data = JSON.parse(data.body);
+
+      if(data.status === 'RUNNING'){
+        setAiStatus('running', data.message || 'En cours...', data.progress || 50);
+
+      } else if(data.status === 'DONE'){
+        const result = data.result || {};
+        testVectors  = result.test_vectors || [];
+        setAiStatus('done', `✅ ${result.total || testVectors.length} tests générés (MC/DC: ${result.mcdc_count||0}, REQ: ${result.req_count||0})`, 100);
+        showToast(`✅ ${testVectors.length} tests générés — associés aux scénarios vidéo`,'success');
+        renderScenarioList();
+        return;
+
+      } else if(data.status === 'FAILED'){
+        setAiStatus('failed', '❌ '+(data.message||'Échec de la génération'), 0);
+        showToast('❌ Génération échouée','error',6000);
+        return;
+      }
+    }catch(e){
+      console.warn('[POLL AI]', e.message);
+    }
+  }
+  setAiStatus('failed','⏱ Timeout après 5 min',0);
 }
 
 function selectSubMode(mode){
