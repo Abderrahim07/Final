@@ -1043,13 +1043,22 @@ function base64UrlEncode(buffer){
 async function generatePkcePair(){
   const random = crypto.getRandomValues(new Uint8Array(32));
   const verifier = base64UrlEncode(random);
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
-  const challenge = base64UrlEncode(digest);
-  return { verifier, challenge };
+
+  // ⚠️ crypto.subtle n'est disponible que dans un contexte sécurisé
+  // (HTTPS, ou localhost). Sur du HTTP brut via IP, on retombe sur la
+  // méthode PKCE "plain" (verifier = challenge), toujours valide côté
+  // Cognito, juste un cran moins robuste que S256.
+  if(window.isSecureContext && crypto.subtle){
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
+    const challenge = base64UrlEncode(digest);
+    return { verifier, challenge, method: 'S256' };
+  }
+  console.warn('[AUTH] Contexte non sécurisé (HTTP) — PKCE en mode "plain" au lieu de S256');
+  return { verifier, challenge: verifier, method: 'plain' };
 }
 
 async function redirectToLogin(){
-  const { verifier, challenge } = await generatePkcePair();
+  const { verifier, challenge, method } = await generatePkcePair();
   sessionStorage.setItem('pkce_verifier', verifier);
   const params = new URLSearchParams({
     response_type: 'code',
@@ -1057,7 +1066,7 @@ async function redirectToLogin(){
     redirect_uri: AUTH_CONFIG.redirectUri,
     scope: AUTH_CONFIG.scope,
     code_challenge: challenge,
-    code_challenge_method: 'S256'
+    code_challenge_method: method
   });
   window.location.href = `https://${AUTH_CONFIG.domain}/oauth2/authorize?${params.toString()}`;
 }
@@ -1288,10 +1297,17 @@ function resumeProject(project){
 
 // ── Démarrage de l'application ──
 (async function bootstrapApp(){
-  const ok = await initAuth();
-  if(!ok) return; // redirection en cours vers Hosted UI
-  updateTopbarUser();
-  showDashboard();
+  try{
+    const ok = await initAuth();
+    if(!ok) return; // redirection en cours vers Hosted UI
+    updateTopbarUser();
+    showDashboard();
+  }catch(e){
+    console.error('[BOOTSTRAP]', e);
+    document.body.innerHTML = `<div style="padding:40px;font-family:monospace;color:#ff5c5c;background:#080B10;min-height:100vh">
+      ❌ Erreur au démarrage de l'application :<br/><br/>${e.message}<br/><br/>
+      Voir la console navigateur (F12) pour le détail complet.</div>`;
+  }
 })();
 
 // ── UI helpers
