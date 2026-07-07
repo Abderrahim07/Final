@@ -366,6 +366,68 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .scm-btn-confirm{background:var(--accent);color:#000}
 .scm-btn-confirm:hover{opacity:.88}
 .scm-btn-confirm:disabled{opacity:.3;cursor:not-allowed}
+/* ══════════════════════════════════
+   BUILDER — Constructeur manuel drag & drop (page dédiée)
+══════════════════════════════════ */
+#builder-overlay{
+  position:fixed;inset:0;background:#05070A;display:none;
+  z-index:998;flex-direction:column;padding:20px 24px;
+}
+#builder-overlay.open{display:flex}
+.builder-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.builder-title{font-size:15px;font-weight:700;color:var(--text1);display:flex;align-items:center;gap:8px}
+.builder-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.builder-meta{display:flex;gap:10px;margin-bottom:14px}
+.builder-meta input,.builder-meta select{
+  background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);
+  padding:9px 12px;color:var(--text1);font-size:12px;font-family:var(--mono);outline:none;
+}
+.builder-body{
+  flex:1;display:grid;grid-template-columns:230px 1fr;gap:0;
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);
+  overflow:hidden;min-height:0;
+}
+.builder-palette{background:var(--bg3);border-right:1px solid var(--border);padding:14px;overflow-y:auto}
+.palette-group-label{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1.5px;
+  color:var(--text3);text-transform:uppercase;margin:12px 0 8px}
+.palette-group-label:first-child{margin-top:0}
+.palette-item{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;
+  padding:9px 11px;margin-bottom:7px;cursor:grab;transition:.15s;
+}
+.palette-item:hover{border-color:rgba(0,212,255,.4);background:rgba(0,212,255,.06)}
+.palette-item:active{cursor:grabbing}
+.palette-item.used{opacity:.3;cursor:not-allowed;pointer-events:none}
+.palette-item-name{font-size:10.5px;font-weight:700;font-family:var(--mono);color:var(--text1)}
+.palette-item-desc{font-size:9px;color:var(--text3);margin-top:3px;line-height:1.4}
+.builder-canvas{
+  position:relative;overflow:auto;
+  background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1px);
+  background-size:22px 22px;
+}
+.canvas-hint{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  color:var(--text3);font-size:12px;text-align:center;pointer-events:none;
+  border:2px dashed rgba(255,255,255,.08);border-radius:12px;padding:24px 40px;
+}
+.canvas-widget{
+  position:absolute;width:190px;background:var(--bg3);
+  border:1px solid rgba(0,212,255,.35);border-radius:10px;
+  box-shadow:0 10px 30px rgba(0,0,0,.5);overflow:hidden;user-select:none;
+}
+.canvas-widget.output-widget{border-color:rgba(0,229,160,.35)}
+.widget-handle{
+  background:rgba(0,212,255,.12);padding:6px 10px;display:flex;align-items:center;
+  justify-content:space-between;cursor:grab;font-family:var(--mono);font-size:10px;
+  font-weight:700;color:var(--accent);
+}
+.canvas-widget.output-widget .widget-handle{background:rgba(0,229,160,.12);color:var(--green)}
+.widget-handle:active{cursor:grabbing}
+.widget-remove{cursor:pointer;color:var(--text3);font-size:13px;padding:0 2px;line-height:1}
+.widget-remove:hover{color:var(--red)}
+.widget-body{padding:10px 11px}
+.widget-desc{font-size:9px;color:var(--text3);margin-bottom:8px;line-height:1.4}
+
 </style>
 </head>
 <body>
@@ -375,18 +437,37 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <div class="logo"><div class="logo-dot"></div>vECU · TESTING PLATFORM</div>
   <div class="topbar-right">
     <span class="env-badge" id="env-badge">SIMULATION</span>
-    <span style="font-size:12px;color:var(--text2)">A.Benali</span>
-    <div class="avatar">AB</div>
+    <span style="font-size:12px;color:var(--text2)" id="topbar-user">—</span>
+    <div class="avatar" id="topbar-avatar">?</div>
+    <button class="btn-secondary" id="topbar-logout" style="display:none;padding:6px 12px;font-size:11px" onclick="logout()">Déconnexion</button>
   </div>
 </div>
 
 <div class="loader-overlay" id="loader"><div class="spinner"></div><div class="loader-msg" id="loader-msg">Traitement...</div></div>
 <div class="toast" id="toast"></div>
 
-<div class="app">
+<!-- ═══ DASHBOARD — liste des projets de l'équipe ═══ -->
+<div id="dashboard-view" style="display:none;max-width:1000px;margin:0 auto;padding:28px 24px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+    <div>
+      <div style="font-size:16px;font-weight:700;color:var(--text1)">Projets de l'équipe</div>
+      <div style="font-size:12px;color:var(--text2)" id="dashboard-team-label">—</div>
+    </div>
+    <button class="btn-primary" onclick="startNewProject()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+      Nouveau projet
+    </button>
+  </div>
+  <div id="dashboard-project-list" style="display:flex;flex-direction:column;gap:10px">
+    <div style="font-size:12px;color:var(--text2);padding:20px;text-align:center">⏳ Chargement des projets...</div>
+  </div>
+</div>
+
+<div class="app" id="app-container" style="display:none">
   <div class="proj-banner" id="proj-banner">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
     Projet actif :&nbsp;<strong id="banner-id">—</strong>
+    <span style="margin-left:auto;cursor:pointer;color:var(--accent);font-size:11px" onclick="showDashboard()">← Retour aux projets</span>
   </div>
 
   <!-- STEPPER -->
@@ -938,6 +1019,175 @@ const API = 'https://e9rne0vrik.execute-api.eu-west-3.amazonaws.com/prod';
 const DEMO = API.includes('XXXXXXXX');
 // ══════════════════════════
 
+// ══════════════════════════════════════════════
+// AUTH — Cognito Hosted UI (Authorization Code + PKCE)
+// ══════════════════════════════════════════════
+// ⚠️ À remplir avec vos vraies valeurs (voir COGNITO_DEPLOY.md)
+const AUTH_CONFIG = {
+  domain:      'vecu-auth.auth.eu-west-3.amazoncognito.com',
+  clientId:    'REPLACE_WITH_APP_CLIENT_ID',
+  redirectUri: window.location.origin + window.location.pathname,
+  scope:       'openid email profile',
+  region:      'eu-west-3'
+};
+const AUTH_ENABLED = !AUTH_CONFIG.clientId.startsWith('REPLACE_');
+
+let AUTH_TOKENS = null;   // {id_token, access_token, refresh_token, expires_at}
+let AUTH_CLAIMS = null;   // payload décodé de l'id_token {email, 'cognito:groups', ...}
+
+function base64UrlEncode(buffer){
+  return btoa(String.fromCharCode(...new Uint8Array(buffer)))
+    .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+
+async function generatePkcePair(){
+  const random = crypto.getRandomValues(new Uint8Array(32));
+  const verifier = base64UrlEncode(random);
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
+  const challenge = base64UrlEncode(digest);
+  return { verifier, challenge };
+}
+
+async function redirectToLogin(){
+  const { verifier, challenge } = await generatePkcePair();
+  sessionStorage.setItem('pkce_verifier', verifier);
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: AUTH_CONFIG.clientId,
+    redirect_uri: AUTH_CONFIG.redirectUri,
+    scope: AUTH_CONFIG.scope,
+    code_challenge: challenge,
+    code_challenge_method: 'S256'
+  });
+  window.location.href = `https://${AUTH_CONFIG.domain}/oauth2/authorize?${params.toString()}`;
+}
+
+async function exchangeCodeForTokens(code){
+  const verifier = sessionStorage.getItem('pkce_verifier');
+  const body = new URLSearchParams({
+    grant_type: 'authorization_code',
+    client_id: AUTH_CONFIG.clientId,
+    code,
+    redirect_uri: AUTH_CONFIG.redirectUri,
+    code_verifier: verifier
+  });
+  const resp = await fetch(`https://${AUTH_CONFIG.domain}/oauth2/token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString()
+  });
+  if(!resp.ok) throw new Error('Échec échange du code Cognito');
+  const tokens = await resp.json();
+  storeTokens(tokens);
+}
+
+async function refreshTokens(){
+  if(!AUTH_TOKENS?.refresh_token) return false;
+  try{
+    const body = new URLSearchParams({
+      grant_type: 'refresh_token',
+      client_id: AUTH_CONFIG.clientId,
+      refresh_token: AUTH_TOKENS.refresh_token
+    });
+    const resp = await fetch(`https://${AUTH_CONFIG.domain}/oauth2/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
+    });
+    if(!resp.ok) return false;
+    const tokens = await resp.json();
+    tokens.refresh_token = tokens.refresh_token || AUTH_TOKENS.refresh_token;
+    storeTokens(tokens);
+    return true;
+  }catch(e){ return false; }
+}
+
+function storeTokens(tokens){
+  const expires_at = Date.now() + (tokens.expires_in || 3600) * 1000;
+  AUTH_TOKENS = {
+    id_token: tokens.id_token,
+    access_token: tokens.access_token,
+    refresh_token: tokens.refresh_token,
+    expires_at
+  };
+  localStorage.setItem('vecu_auth_tokens', JSON.stringify(AUTH_TOKENS));
+  AUTH_CLAIMS = decodeJwt(tokens.id_token);
+}
+
+function decodeJwt(token){
+  try{
+    const payload = token.split('.')[1];
+    return JSON.parse(atob(payload.replace(/-/g,'+').replace(/_/g,'/')));
+  }catch(e){ return null; }
+}
+
+function loadStoredTokens(){
+  const raw = localStorage.getItem('vecu_auth_tokens');
+  if(!raw) return false;
+  try{
+    AUTH_TOKENS = JSON.parse(raw);
+    AUTH_CLAIMS = decodeJwt(AUTH_TOKENS.id_token);
+    return true;
+  }catch(e){ return false; }
+}
+
+async function ensureValidToken(){
+  if(!AUTH_TOKENS) return false;
+  if(Date.now() < AUTH_TOKENS.expires_at - 60000) return true; // encore valide (marge 1min)
+  return await refreshTokens();
+}
+
+function logout(){
+  localStorage.removeItem('vecu_auth_tokens');
+  const params = new URLSearchParams({
+    client_id: AUTH_CONFIG.clientId,
+    logout_uri: AUTH_CONFIG.redirectUri
+  });
+  window.location.href = `https://${AUTH_CONFIG.domain}/logout?${params.toString()}`;
+}
+
+// ── Point d'entrée : à appeler avant tout rendu de l'app ──
+async function initAuth(){
+  if(!AUTH_ENABLED) return true; // Cognito pas encore configuré → app accessible librement
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const code = urlParams.get('code');
+
+  if(code){
+    await exchangeCodeForTokens(code);
+    window.history.replaceState({}, '', AUTH_CONFIG.redirectUri); // nettoie ?code=... de l'URL
+    return true;
+  }
+
+  if(loadStoredTokens() && await ensureValidToken()){
+    return true;
+  }
+
+  await redirectToLogin();
+  return false; // la page va rediriger, ne rien rendre de plus
+}
+
+function getTeamId(){
+  const groups = AUTH_CLAIMS?.['cognito:groups'];
+  if(!groups) return null;
+  return Array.isArray(groups) ? groups[0] : String(groups).split(',')[0];
+}
+
+function getUserEmail(){
+  return AUTH_CLAIMS?.email || '';
+}
+
+// ── Wrapper fetch — ajoute automatiquement le Bearer token sur les appels API.
+// ⚠️ Ne JAMAIS l'utiliser pour les PUT vers des URLs S3 presignées
+// (ça casserait la signature SigV4) — celles-ci gardent fetch() brut.
+async function apiFetch(url, options={}){
+  if(AUTH_ENABLED){
+    await ensureValidToken();
+    options = { ...options, headers: { ...(options.headers||{}), 'Authorization': `Bearer ${AUTH_TOKENS?.id_token}` } };
+  }
+  return fetch(url, options);
+}
+
 let PROJECT_ID = null, projName = '';
 let scenarios  = [];   // [{name, filename, file(File), status, signals, testVector}]
 let activeIdx  = 0;
@@ -951,6 +1201,98 @@ let warnLeftCount=0, warnRightCount=0, activeFrames=0;
 let buildReady    = false;
 
 if(DEMO){ const b=document.getElementById('env-badge'); b.textContent='DEMO'; b.style.cssText+='background:rgba(255,181,71,.08);color:var(--amber);border-color:rgba(255,181,71,.2)'; }
+
+// ══════════════════════════════════════════════
+// DASHBOARD — liste des projets de l'équipe + reprise
+// ══════════════════════════════════════════════
+function updateTopbarUser(){
+  const email = getUserEmail();
+  const team  = getTeamId();
+  document.getElementById('topbar-user').textContent = email || (DEMO ? 'Mode démo' : '—');
+  document.getElementById('topbar-avatar').textContent = email ? email.slice(0,2).toUpperCase() : '?';
+  document.getElementById('dashboard-team-label').textContent = team ? `Équipe : ${team}` : '';
+  if(AUTH_ENABLED) document.getElementById('topbar-logout').style.display = 'inline-block';
+}
+
+function showDashboard(){
+  document.getElementById('dashboard-view').style.display = 'block';
+  document.getElementById('app-container').style.display  = 'none';
+  loadDashboard();
+}
+
+function showAppContainer(){
+  document.getElementById('dashboard-view').style.display = 'none';
+  document.getElementById('app-container').style.display  = 'block';
+}
+
+function startNewProject(){
+  PROJECT_ID = null; projName = '';
+  scenarios = []; testVectors = []; buildReady = false;
+  document.getElementById('proj-banner').classList.remove('show');
+  showAppContainer();
+  go(0);
+}
+
+async function loadDashboard(){
+  const list = document.getElementById('dashboard-project-list');
+
+  if(DEMO){
+    list.innerHTML = `<div style="font-size:12px;color:var(--text2);padding:20px;text-align:center">
+      Mode démo — pas de liste de projets persistée. Cliquez sur "Nouveau projet" pour tester.</div>`;
+    return;
+  }
+
+  list.innerHTML = `<div style="font-size:12px;color:var(--text2);padding:20px;text-align:center">⏳ Chargement...</div>`;
+  try{
+    const resp = await apiFetch(`${API}/projects`);
+    let data = JSON.parse(await resp.text());
+    if(data.body && typeof data.body==='string') data = JSON.parse(data.body);
+    const projects = data.projects || [];
+
+    if(projects.length === 0){
+      list.innerHTML = `<div style="font-size:12px;color:var(--text2);padding:20px;text-align:center">
+        Aucun projet pour votre équipe pour le moment.</div>`;
+      return;
+    }
+
+    list.innerHTML = projects.map(p => `
+      <div style="display:flex;align-items:center;justify-content:space-between;
+        background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:16px 20px">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--text1)">${p.name || p.project_id}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:3px">${p.description || ''}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:4px;font-family:var(--mono)">
+            ${p.created_by || ''} · ${p.created_at ? new Date(p.created_at).toLocaleString('fr-FR') : ''}
+          </div>
+        </div>
+        <button class="btn-primary" onclick='resumeProject(${JSON.stringify(p)})'>
+          ▶ Reprendre
+        </button>
+      </div>`).join('');
+
+  }catch(e){
+    list.innerHTML = `<div style="font-size:12px;color:var(--red);padding:20px;text-align:center">
+      ❌ Erreur de chargement : ${e.message}</div>`;
+  }
+}
+
+function resumeProject(project){
+  PROJECT_ID = project.project_id;
+  projName   = project.name || '';
+  scenarios = []; testVectors = []; buildReady = false;
+  showBanner();
+  showAppContainer();
+  go(2); // Tests & Scénarios — refreshScenarioListS3() se déclenche automatiquement
+  showToast(`✅ Projet "${projName}" repris`,'success');
+}
+
+// ── Démarrage de l'application ──
+(async function bootstrapApp(){
+  const ok = await initAuth();
+  if(!ok) return; // redirection en cours vers Hosted UI
+  updateTopbarUser();
+  showDashboard();
+})();
 
 // ── UI helpers
 function showToast(m,t='info',d=3500){ const el=document.getElementById('toast'); el.textContent=m; el.className=`toast ${t} show`; setTimeout(()=>el.classList.remove('show'),d); }
@@ -984,7 +1326,7 @@ async function createProject(){
   if(DEMO){ PROJECT_ID='demo-'+Math.random().toString(36).slice(2,6); projName=name; showBanner(); updatePath(); showToast(`✅ Projet "${name}" créé`,'success'); go(1); return; }
   showLoader('Création...');
   try{
-    const resp=await fetch(`${API}/projects`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,description:desc})});
+    const resp=await apiFetch(`${API}/projects`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,description:desc})});
     let d=JSON.parse(await resp.text());
     if(d.body&&typeof d.body==='string') d=JSON.parse(d.body);
     if(!d.project_id) throw new Error('project_id manquant');
@@ -1007,7 +1349,7 @@ async function uploadFile(input,type){
   if(DEMO){ await sleep(600); document.getElementById(nid).textContent=file.name; showToast(`✅ ${file.name}`,'success'); return; }
   showLoader(`Upload ${file.name}...`);
   try{
-    const ur=await fetch(`${API}/projects/${PROJECT_ID}/upload-url?filename=${encodeURIComponent(file.name)}`);
+    const ur=await apiFetch(`${API}/projects/${PROJECT_ID}/upload-url?filename=${encodeURIComponent(file.name)}`);
     let ud=JSON.parse(await ur.text());
     if(ud.body&&typeof ud.body==='string') ud=JSON.parse(ud.body);
     const put=await fetch(ud.upload_url,{method:'PUT',body:file,headers:{'Content-Type':'application/octet-stream'}});
@@ -1028,7 +1370,7 @@ async function uploadVideos(input){
     if(!DEMO){
       showLoader(`Upload ${file.name}...`);
       try{
-        const ur=await fetch(`${API}/projects/${PROJECT_ID}/upload-url?filename=${encodeURIComponent(file.name)}`);
+        const ur=await apiFetch(`${API}/projects/${PROJECT_ID}/upload-url?filename=${encodeURIComponent(file.name)}`);
         let ud=JSON.parse(await ur.text());
         if(ud.body&&typeof ud.body==='string') ud=JSON.parse(ud.body);
         const put=await fetch(ud.upload_url,{method:'PUT',body:file,headers:{'Content-Type':'application/octet-stream'}});
@@ -1060,7 +1402,7 @@ async function saveScenarios(){
       };
     });
 
-    await fetch(`${API}/projects/${PROJECT_ID}/scenarios`, {
+    await apiFetch(`${API}/projects/${PROJECT_ID}/scenarios`, {
       method:  'POST',
       headers: {'Content-Type': 'application/json'},
       body:    JSON.stringify({
@@ -1093,7 +1435,7 @@ async function refreshScenarioListS3(){
 
   sub.textContent = '⏳ Chargement des scénarios depuis S3...';
   try{
-    const resp = await fetch(`${API}/projects/${PROJECT_ID}/scenarios`);
+    const resp = await apiFetch(`${API}/projects/${PROJECT_ID}/scenarios`);
     let data   = JSON.parse(await resp.text());
     if(data.body && typeof data.body === 'string') data = JSON.parse(data.body);
 
@@ -1228,7 +1570,7 @@ async function openBench(idx){
   } else if(sc.s3key && !DEMO){
     // Fichier S3 → presigned URL de lecture
     try{
-      const resp = await fetch(
+      const resp = await apiFetch(
         `${API}/projects/${PROJECT_ID}/read-url?key=${encodeURIComponent(sc.s3key)}`
       );
       let d = JSON.parse(await resp.text());
@@ -1282,7 +1624,7 @@ function loadTestFile(input){
   if(PROJECT_ID && !DEMO){
     (async ()=>{
       try{
-        const ur = await fetch(API+'/projects/'+PROJECT_ID+'/upload-url?filename='+encodeURIComponent(file.name));
+        const ur = await apiFetch(API+'/projects/'+PROJECT_ID+'/upload-url?filename='+encodeURIComponent(file.name));
         let ud = JSON.parse(await ur.text());
         if(ud.body && typeof ud.body==='string') ud=JSON.parse(ud.body);
         await fetch(ud.upload_url,{method:'PUT',body:file,headers:{'Content-Type':'application/octet-stream'}});
@@ -1302,7 +1644,7 @@ async function startBenchECS(){
   addLog(`[ECS] Paramètres : speed=${tv.speed||54} lpa=${tv.lpa_ct||1} turn=${tv.turn_signal||0}`, 'info');
 
   try{
-    const resp = await fetch(`${API}/projects/${PROJECT_ID}/run`, {
+    const resp = await apiFetch(`${API}/projects/${PROJECT_ID}/run`, {
       method:  'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
@@ -1355,7 +1697,7 @@ async function pollResults(scenarioName, runId){
   for(let i = 0; i < maxAttempts; i++){
     await sleep(5000);
     try{
-      const resp = await fetch(
+      const resp = await apiFetch(
         `${API}/projects/${PROJECT_ID}/results-status?run_id=${runId}&scenario=${scenarioName}`
       );
       let data = JSON.parse(await resp.text());
@@ -1451,6 +1793,252 @@ function renderTVPreview(headers,rows){
 }
 
 // ── Strategy
+// ══════════════════════════════════════════════
+// BUILDER — Constructeur manuel drag & drop (page dédiée)
+// ══════════════════════════════════════════════
+let builderSignals   = [];   // signaux disponibles dans la palette
+let builderValues    = {};   // valeurs courantes des widgets posés {signal_name: value}
+let builderWidgetOf  = {};   // signal_name -> élément widget DOM (pour repositionnement/suppression)
+let builderWidgetSeq = 0;
+
+async function openBuilder(){
+  document.getElementById('builder-overlay').classList.add('open');
+  document.getElementById('builder-sc-name').value = '';
+  builderPopulateVideoSelect();
+  await builderLoadSignals();
+}
+
+function closeBuilder(){
+  document.getElementById('builder-overlay').classList.remove('open');
+}
+
+function builderPopulateVideoSelect(){
+  const sel = document.getElementById('builder-sc-video');
+  sel.innerHTML = '<option value="">— Vidéo scénario associée —</option>';
+  scenarios.forEach((sc,i)=>{
+    const opt = document.createElement('option');
+    opt.value = i; opt.textContent = `SC${i+1} — ${sc.name}`;
+    sel.appendChild(opt);
+  });
+}
+
+// ── Charge les signaux réels (DynamoDB via /signals), fallback sur la
+// bibliothèque générique si aucun fichier I/O n'a été uploadé
+async function builderLoadSignals(){
+  // Reset zone de travail à chaque ouverture
+  const canvas = document.getElementById('builder-canvas');
+  canvas.querySelectorAll('.canvas-widget').forEach(w=>w.remove());
+  document.getElementById('canvas-hint').style.display = 'block';
+  builderValues = {}; builderWidgetOf = {};
+
+  if(!PROJECT_ID || DEMO){
+    builderSignals = GENERIC_SIGNAL_LIBRARY;
+    renderBuilderPalette();
+    return;
+  }
+
+  try{
+    const resp = await apiFetch(`${API}/projects/${PROJECT_ID}/signals`);
+    let data   = JSON.parse(await resp.text());
+    if(data.body && typeof data.body==='string') data = JSON.parse(data.body);
+    const signals = data.signals || [];
+    builderSignals = signals.length > 0 ? signals : GENERIC_SIGNAL_LIBRARY;
+  }catch(e){
+    console.warn('[BUILDER SIGNALS]', e.message);
+    builderSignals = GENERIC_SIGNAL_LIBRARY;
+  }
+  renderBuilderPalette();
+}
+
+function renderBuilderPalette(){
+  const list = document.getElementById('builder-palette-list');
+  const inputs  = builderSignals.filter(s => s.direction === 'INPUT');
+  const outputs = builderSignals.filter(s => s.direction === 'OUTPUT');
+
+  const itemHtml = sig => `
+    <div class="palette-item" id="palette-${sig.signal_name}"
+         draggable="true" ondragstart="builderDragStart(event,'${sig.signal_name}')">
+      <div class="palette-item-name">${sig.signal_name}</div>
+      <div class="palette-item-desc">${sig.description || ''}</div>
+    </div>`;
+
+  let html = '<div class="palette-group-label">Entrées</div>' + inputs.map(itemHtml).join('');
+  html += '<div class="palette-group-label">Sorties</div>' + outputs.map(itemHtml).join('');
+  list.innerHTML = html;
+}
+
+// ── Drag & drop depuis la palette vers le canvas
+function builderDragStart(ev, signalName){
+  ev.dataTransfer.setData('text/plain', signalName);
+  ev.dataTransfer.effectAllowed = 'move';
+}
+
+function builderDrop(ev){
+  ev.preventDefault();
+  const name = ev.dataTransfer.getData('text/plain');
+  if(!name || builderWidgetOf[name]) return; // déjà posé
+  const sig = builderSignals.find(s => s.signal_name === name);
+  if(!sig) return;
+
+  const canvas = document.getElementById('builder-canvas');
+  const rect   = canvas.getBoundingClientRect();
+  const x = Math.max(0, ev.clientX - rect.left + canvas.scrollLeft - 95);
+  const y = Math.max(0, ev.clientY - rect.top  + canvas.scrollTop  - 20);
+
+  createCanvasWidget(sig, x, y);
+}
+
+// ── Crée un widget librement positionnable sur le canvas
+function createCanvasWidget(sig, x, y){
+  const canvas = document.getElementById('builder-canvas');
+  document.getElementById('canvas-hint').style.display = 'none';
+
+  const isOutput = sig.direction === 'OUTPUT';
+  const isBool   = (sig.data_type || '').toLowerCase() === 'boolean';
+  const min = parseFloat(sig.min_value) || 0;
+  const max = parseFloat(sig.max_value) || 1;
+  const valueKey = isOutput ? `expected_${sig.signal_name}` : sig.signal_name;
+
+  const widget = document.createElement('div');
+  widget.className = 'canvas-widget' + (isOutput ? ' output-widget' : '');
+  widget.style.left = x + 'px';
+  widget.style.top  = y + 'px';
+  widget.dataset.signal = sig.signal_name;
+
+  let controlHtml;
+  if(isBool || isOutput){
+    // Toggle 0/1 (sorties toujours en 0/1, entrées booléennes aussi)
+    builderValues[valueKey] = '0';
+    controlHtml = `
+      <div style="display:flex;gap:6px">
+        <button class="scm-toggle" onclick="builderSetToggle(this,'${valueKey}','1')"
+          style="flex:1;padding:6px;border-radius:6px;border:1px solid rgba(255,255,255,.1);
+            background:rgba(255,255,255,.04);color:var(--text3);font-size:10px;font-weight:700;
+            cursor:pointer;font-family:var(--mono)">1</button>
+        <button class="scm-toggle on" onclick="builderSetToggle(this,'${valueKey}','0')"
+          style="flex:1;padding:6px;border-radius:6px;border:1px solid rgba(239,68,68,.35);
+            background:rgba(239,68,68,.1);color:#ef4444;font-size:10px;font-weight:700;
+            cursor:pointer;font-family:var(--mono)">0</button>
+      </div>`;
+  } else {
+    builderValues[valueKey] = String(min);
+    const wid = 'w'+(builderWidgetSeq++);
+    controlHtml = `
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:9px;color:var(--text3)">${min}</span>
+        <span id="${wid}-lbl" style="font-size:10px;color:var(--accent);font-family:var(--mono)">${min} ${sig.unit||''}</span>
+        <span style="font-size:9px;color:var(--text3)">${max}</span>
+      </div>
+      <input type="range" min="${min}" max="${max}" value="${min}" step="${(max-min)/100 || 1}"
+        style="width:100%;height:3px;background:rgba(255,255,255,.1);border-radius:10px;
+          outline:none;-webkit-appearance:none;cursor:pointer"
+        oninput="builderSetSlider('${valueKey}',this.value,'${wid}','${sig.unit||''}')"/>`;
+  }
+
+  widget.innerHTML = `
+    <div class="widget-handle" onmousedown="builderStartDrag(event,'${sig.signal_name}')">
+      <span>${sig.signal_name}</span>
+      <span class="widget-remove" onclick="removeBuilderWidget('${sig.signal_name}')">✕</span>
+    </div>
+    <div class="widget-body">
+      <div class="widget-desc">${sig.description || ''}</div>
+      ${controlHtml}
+    </div>`;
+
+  canvas.appendChild(widget);
+  builderWidgetOf[sig.signal_name] = widget;
+
+  // Griser l'item dans la palette
+  const paletteItem = document.getElementById(`palette-${sig.signal_name}`);
+  if(paletteItem) paletteItem.classList.add('used');
+}
+
+function removeBuilderWidget(signalName){
+  const widget = builderWidgetOf[signalName];
+  if(widget) widget.remove();
+  delete builderWidgetOf[signalName];
+
+  const sig = builderSignals.find(s => s.signal_name === signalName);
+  const valueKey = sig && sig.direction === 'OUTPUT' ? `expected_${signalName}` : signalName;
+  delete builderValues[valueKey];
+
+  const paletteItem = document.getElementById(`palette-${signalName}`);
+  if(paletteItem) paletteItem.classList.remove('used');
+
+  const canvas = document.getElementById('builder-canvas');
+  if(canvas.querySelectorAll('.canvas-widget').length === 0){
+    document.getElementById('canvas-hint').style.display = 'block';
+  }
+}
+
+function builderSetToggle(btn, key, val){
+  builderValues[key] = val;
+  const row = btn.parentElement;
+  [...row.children].forEach(b=>{
+    const active = b === btn;
+    b.style.background  = active ? (val==='1' ? 'rgba(34,197,94,.15)' : 'rgba(239,68,68,.1)')  : 'rgba(255,255,255,.04)';
+    b.style.borderColor = active ? (val==='1' ? 'rgba(34,197,94,.4)'  : 'rgba(239,68,68,.35)') : 'rgba(255,255,255,.1)';
+    b.style.color       = active ? (val==='1' ? '#22c55e' : '#ef4444') : 'var(--text3)';
+  });
+}
+
+function builderSetSlider(key, val, wid, unit){
+  builderValues[key] = String(val);
+  const lbl = document.getElementById(`${wid}-lbl`);
+  if(lbl) lbl.textContent = `${val} ${unit}`;
+}
+
+// ── Repositionnement libre d'un widget sur le canvas (mousedown/move/up)
+let builderDrag = null;
+function builderStartDrag(ev, signalName){
+  const widget = builderWidgetOf[signalName];
+  if(!widget) return;
+  builderDrag = {
+    widget,
+    offsetX: ev.clientX - widget.offsetLeft,
+    offsetY: ev.clientY - widget.offsetTop
+  };
+  ev.preventDefault();
+}
+document.addEventListener('mousemove', ev=>{
+  if(!builderDrag) return;
+  const canvas = document.getElementById('builder-canvas');
+  let x = ev.clientX - builderDrag.offsetX + canvas.scrollLeft;
+  let y = ev.clientY - builderDrag.offsetY + canvas.scrollTop;
+  x = Math.max(0, x); y = Math.max(0, y);
+  builderDrag.widget.style.left = x + 'px';
+  builderDrag.widget.style.top  = y + 'px';
+});
+document.addEventListener('mouseup', ()=>{ builderDrag = null; });
+
+// ── Confirmation → crée le vecteur de test et lance le bench
+function builderConfirmAndLaunch(){
+  const nameInput = document.getElementById('builder-sc-name');
+  const videoSel  = document.getElementById('builder-sc-video');
+  const scName    = nameInput?.value || 'custom_scenario';
+  const videoIdx  = parseInt(videoSel?.value ?? '-1');
+
+  if(Object.keys(builderValues).length === 0){
+    showToast('⚠️ Glissez au moins un signal dans la zone de travail','error');
+    return;
+  }
+  if(videoIdx < 0){
+    showToast('⚠️ Sélectionnez une vidéo scénario','error');
+    return;
+  }
+
+  const tv = { scenario: scName, ...builderValues };
+  const sc = scenarios[videoIdx];
+  sc.test_vector = tv;
+  testVectors = testVectors.filter(v => v.scenario !== sc.name);
+  tv.scenario = sc.name;
+  testVectors.push(tv);
+
+  showToast(`✅ Vecteur créé pour ${sc.name}`,'success');
+  closeBuilder();
+  openBench(videoIdx);
+}
+
 function selectStrategy(n){
   strategy=n;
   document.getElementById('str0').classList.toggle('selected',n===0);
@@ -1519,7 +2107,7 @@ async function generateTestsWithAI(){
   }
 
   try{
-    const resp = await fetch(`${API}/projects/${PROJECT_ID}/generate-tests`, { method:'POST' });
+    const resp = await apiFetch(`${API}/projects/${PROJECT_ID}/generate-tests`, { method:'POST' });
     let data = JSON.parse(await resp.text());
     if(data.body && typeof data.body==='string') data = JSON.parse(data.body);
     if(!data.job_id) throw new Error('job_id manquant');
@@ -1536,11 +2124,11 @@ async function generateTestsWithAI(){
 }
 
 async function pollGenerateStatus(jobId){
-  const maxAttempts = 60; // 60 × 5s = 5 min
+  const maxAttempts = 144; // 144 × 5s = 12 min (Lambda peut tourner jusqu'à 15 min)
   for(let i=0; i<maxAttempts; i++){
     await sleep(5000);
     try{
-      const resp = await fetch(`${API}/projects/${PROJECT_ID}/generate-status?job_id=${jobId}`);
+      const resp = await apiFetch(`${API}/projects/${PROJECT_ID}/generate-status?job_id=${jobId}`);
       let data = JSON.parse(await resp.text());
       if(data.body && typeof data.body==='string') data = JSON.parse(data.body);
 
@@ -1564,20 +2152,20 @@ async function pollGenerateStatus(jobId){
       console.warn('[POLL AI]', e.message);
     }
   }
-  setAiStatus('failed','⏱ Timeout après 5 min',0);
+  setAiStatus('failed','⏱ Timeout après 12 min',0);
 }
 
 function selectSubMode(mode){
   document.getElementById('sub-upload').classList.toggle('selected', mode==='upload');
   document.getElementById('sub-manual').classList.toggle('selected', mode==='manual');
   document.getElementById('sub-upload-card').style.display  = mode==='upload'?'block':'none';
-  document.getElementById('sub-manual-card').style.display  = mode==='manual'?'block':'none';
+  // "Créer manuellement" → page dédiée plein écran (builder drag & drop),
+  // au lieu de l'ancienne carte inline
+  document.getElementById('sub-manual-card').style.display  = 'none';
   // La liste scénarios n'apparaît que pour upload
   document.getElementById('scenarios-list-card').style.display = mode==='upload'?'block':'none';
   if(mode==='manual'){
-    manPopulateVideoSelect();
-    manBuildDynamicSignals();
-    manUpdateResume();
+    openBuilder();
   }
 }
 
@@ -1629,7 +2217,7 @@ async function manBuildDynamicSignals() {
 
   try {
     // Appel à la Lambda vecu-parse-arxml via API Gateway
-    const resp = await fetch(`${API}/projects/${PROJECT_ID}/signals`);
+    const resp = await apiFetch(`${API}/projects/${PROJECT_ID}/signals`);
     let data   = JSON.parse(await resp.text());
     if(data.body && typeof data.body === 'string') data = JSON.parse(data.body);
 
@@ -2102,7 +2690,7 @@ async function uploadMultipleFiles(input, type){
 
     try{
       // Obtenir presigned URL
-      const ur = await fetch(
+      const ur = await apiFetch(
         `${API}/projects/${PROJECT_ID}/upload-url?filename=${encodeURIComponent(file.name)}`
       );
       let ud = JSON.parse(await ur.text());
@@ -2186,7 +2774,7 @@ async function compileFirmware(){
 
   try{
     // Appel Lambda vecu-compile
-    const resp = await fetch(`${API}/projects/${PROJECT_ID}/compile`,{
+    const resp = await apiFetch(`${API}/projects/${PROJECT_ID}/compile`,{
       method:  'POST',
       headers: {'Content-Type':'application/json'},
       body:    JSON.stringify({project_id: PROJECT_ID})
@@ -2233,7 +2821,7 @@ async function pollBuildStatus(){
     await sleep(8000); // check toutes les 8 secondes
 
     try{
-      const resp = await fetch(`${API}/projects/${PROJECT_ID}/build-status`);
+      const resp = await apiFetch(`${API}/projects/${PROJECT_ID}/build-status`);
       let data   = JSON.parse(await resp.text());
       if(data.body && typeof data.body==='string') data=JSON.parse(data.body);
 
@@ -2331,6 +2919,47 @@ function launchAllTests(){
 }
 function clearLog(){ document.getElementById('bench-log-body').innerHTML=''; }
 </script>
+<!-- ════════════════════════════════════
+     BUILDER — Constructeur manuel drag & drop
+════════════════════════════════════ -->
+<div id="builder-overlay">
+  <div class="builder-header">
+    <div>
+      <div class="builder-title">🎛 Constructeur de vecteur de test</div>
+      <div class="builder-sub">Glissez les signaux depuis la palette vers la zone de travail, positionnez-les comme vous voulez</div>
+    </div>
+    <button class="btn-secondary" onclick="closeBuilder()">✕ Fermer</button>
+  </div>
+
+  <div class="builder-meta">
+    <input type="text" id="builder-sc-name" placeholder="Nom du scénario (ex: scene_nominal_custom)" style="flex:1"/>
+    <select id="builder-sc-video" style="width:260px">
+      <option value="">— Vidéo scénario associée —</option>
+    </select>
+  </div>
+
+  <div class="builder-body">
+    <div class="builder-palette" id="builder-palette" ondragover="event.preventDefault()">
+      <div id="builder-palette-list">
+        <div style="font-size:11px;color:var(--text2);padding:8px">⏳ Chargement des signaux...</div>
+      </div>
+    </div>
+    <div class="builder-canvas" id="builder-canvas"
+         ondragover="event.preventDefault()" ondrop="builderDrop(event)">
+      <div class="canvas-hint" id="canvas-hint">
+        Glissez un signal ici<br/>pour créer un contrôle
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-secondary" onclick="closeBuilder()">Annuler</button>
+    <button class="btn-launch" onclick="builderConfirmAndLaunch()">
+      ▶ Confirmer et passer au test
+    </button>
+  </div>
+</div>
+
 <!-- ════════════════════════════════════
      SCENARIO MODAL
 ════════════════════════════════════ -->
