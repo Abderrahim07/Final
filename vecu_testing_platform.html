@@ -478,7 +478,9 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="step-sep"></div>
     <div class="step-item" id="nav2"><div class="step-num" id="num2">3</div><div class="step-label">Tests &amp; Scénarios</div></div>
     <div class="step-sep"></div>
-    <div class="step-item" id="nav3"><div class="step-num" id="num3">4</div><div class="step-label">Test Bench</div></div>
+    <div class="step-item" id="nav3"><div class="step-num" id="num3">4</div><div class="step-label">Compilation</div></div>
+    <div class="step-sep"></div>
+    <div class="step-item" id="nav4"><div class="step-num" id="num4">5</div><div class="step-label">Test Bench</div></div>
   </div>
 
   <!-- ═══ SCREEN 1 — Projet ═══ -->
@@ -498,38 +500,93 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <!-- ═══ SCREEN 2 — Uploads (Software + Requirements + I/O + Vidéos) ═══ -->
   <div class="screen" id="sc1">
 
-    <!-- Ligne 1 : Software + Requirements + I/O -->
+    <!-- Ligne 1 : Software (3 catégories) -->
     <div class="card">
       <div class="card-head">
-        <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>Fichiers du projet</div>
-        <div class="card-sub">Uploade le binaire, les requirements et la matrice des signaux I/O</div>
+        <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>Software (sources C)</div>
+        <div class="card-sub">Séparez vos fichiers par catégorie pour une visibilité claire de ce qui est enregistré</div>
       </div>
       <div class="upload-3col">
 
-       <!-- Software -->
-      <div>
-        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">
-          💾 Software (sources C)
-        </div>
-        <div class="upload-zone" onclick="document.getElementById('input-bin').click()">
-          <input type="file" id="input-bin"
-                 accept=".c,.h,.elf,.bin,.hex,.a2l,.cpp"
-                 multiple
-                 style="display:none"
-                 onchange="uploadMultipleFiles(this,'bin')"/>
-          <div class="upload-icon" style="background:rgba(0,212,255,.08)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
-              <polyline points="16 16 12 12 8 16"/>
-              <line x1="12" y1="12" x2="12" y2="21"/>
-              <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
-            </svg>
+        <!-- Modèle (.c généré) -->
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">
+            🧩 Modèle (.c généré)
           </div>
-          <p style="font-size:12px">Fichiers sources du firmware</p>
-          <span>.c · .h · .elf · Plusieurs fichiers acceptés</span>
+          <div class="upload-zone" onclick="document.getElementById('input-bin-model').click()">
+            <input type="file" id="input-bin-model"
+                   accept=".c,.h"
+                   multiple
+                   style="display:none"
+                   onchange="uploadMultipleFiles(this,'model')"/>
+            <div class="upload-icon" style="background:rgba(0,212,255,.08)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
+                <polyline points="16 16 12 12 8 16"/>
+                <line x1="12" y1="12" x2="12" y2="21"/>
+                <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+              </svg>
+            </div>
+            <p style="font-size:12px">Code généré par Embedded Coder</p>
+            <span>ex: LDW_LPA_System.c/.h · rtwtypes.h</span>
+          </div>
+          <div id="bin-files-list-model"></div>
         </div>
-        <!-- Liste des fichiers uploadés -->
-        <div id="bin-files-list"></div>
+
+        <!-- RTE -->
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">
+            🔌 RTE
+          </div>
+          <div class="upload-zone" onclick="document.getElementById('input-bin-rte').click()">
+            <input type="file" id="input-bin-rte"
+                   accept=".c,.h"
+                   multiple
+                   style="display:none"
+                   onchange="uploadMultipleFiles(this,'rte')"/>
+            <div class="upload-icon" style="background:rgba(167,139,250,.08)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2">
+                <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+              </svg>
+            </div>
+            <p style="font-size:12px">Couche d'adaptation runtime</p>
+            <span>ex: rte_adapter.c/.h · rte_interface.h</span>
+          </div>
+          <div id="bin-files-list-rte"></div>
+        </div>
+
+        <!-- BSW -->
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">
+            ⚙️ BSW
+          </div>
+          <div class="upload-zone" onclick="document.getElementById('input-bin-bsw').click()">
+            <input type="file" id="input-bin-bsw"
+                   accept=".c,.h"
+                   multiple
+                   style="display:none"
+                   onchange="uploadMultipleFiles(this,'bsw')"/>
+            <div class="upload-icon" style="background:rgba(0,229,160,.08)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6v6H9z"/>
+              </svg>
+            </div>
+            <p style="font-size:12px">Basic Software (couche matérielle)</p>
+            <span>ex: bsw_main.c · bsw_os.c · bsw_com.c...</span>
+          </div>
+          <div id="bin-files-list-bsw"></div>
+        </div>
+
       </div>
+    </div>
+
+    <!-- Ligne 2 : Requirements + I/O -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Requirements &amp; Signaux I/O</div>
+        <div class="card-sub">Spécifications fonctionnelles et matrice des signaux</div>
+      </div>
+      <div class="upload-3col" style="grid-template-columns:1fr 1fr">
 
         <!-- Requirements -->
         <div>
@@ -598,7 +655,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div class="strategy-card" id="str0" onclick="selectStrategy(0)">
           <span class="strategy-icon">📋</span>
           <div class="strategy-title">Mes propres tests</div>
-          <div class="strategy-desc">Importer un fichier CSV ou créer manuellement tes vecteurs de test — contrôle total</div>
+          <div class="strategy-desc">Importer un fichier CSV avec tes vecteurs de test — contrôle total</div>
         </div>
         <div class="strategy-card" id="str1" onclick="selectStrategy(1)">
           <span class="strategy-icon">🤖</span>
@@ -608,27 +665,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </div>
     </div>
 
-    <!-- NIVEAU 2 : Sous-choix "Mes propres tests" -->
-    <div class="card" id="manual-tests-card" style="display:none">
-      <div class="card-head">
-        <div class="card-title">📋 Mes propres tests — Comment veux-tu les définir ?</div>
-        <div class="card-sub">Choisissez le mode de saisie de vos vecteurs de test</div>
-      </div>
-      <div class="strategy-grid">
-        <div class="strategy-card" id="sub-upload" onclick="selectSubMode('upload')">
-          <span class="strategy-icon">📂</span>
-          <div class="strategy-title">Importer un CSV</div>
-          <div class="strategy-desc">Charger un fichier CSV/Excel avec les vecteurs déjà définis</div>
-        </div>
-        <div class="strategy-card" id="sub-manual" onclick="selectSubMode('manual')">
-          <span class="strategy-icon">🎛</span>
-          <div class="strategy-title">Créer manuellement</div>
-          <div class="strategy-desc">Configurer les signaux d'entrée et sorties attendues directement depuis l'interface</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- NIVEAU 3a : Upload CSV -->
+    <!-- Import CSV (visible si "Mes propres tests" sélectionné) -->
     <div class="card" id="sub-upload-card" style="display:none">
       <div class="card-head">
         <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Import de vecteurs de test</div>
@@ -662,53 +699,6 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px">Aperçu des vecteurs chargés</div>
         <div class="tv-table-wrap"><table class="tv-table" id="tv-table"><thead></thead><tbody></tbody></table></div>
       </div>
-    </div>
-
-    <!-- NIVEAU 3b : Création manuelle -->
-    <div class="card" id="sub-manual-card" style="display:none">
-      <div class="card-head">
-        <div class="card-title">🎛 Créer un vecteur de test manuellement</div>
-        <div class="card-sub">Définissez les paramètres d'entrée et les sorties attendues</div>
-      </div>
-
-      <!-- Nom du scénario -->
-      <div style="margin-bottom:16px">
-        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:8px">Identifiant</div>
-        <input type="text" id="man-sc-name"
-          style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
-                 padding:10px 14px;color:var(--text1);font-size:12px;font-family:var(--mono);outline:none"
-          placeholder="ex: scene_nominal_custom"
-          oninput="manUpdateResume()"/>
-      </div>
-
-      <!-- Sélection du scénario vidéo associé -->
-      <div style="margin-bottom:16px">
-        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:8px">Scénario vidéo associé</div>
-        <select id="man-sc-video"
-          style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
-                 padding:10px 14px;color:var(--text1);font-size:12px;font-family:var(--mono);outline:none">
-          <option value="">— Sélectionner une vidéo uploadée —</option>
-        </select>
-      </div>
-
-      <!-- Signaux dynamiques (depuis fichier I/O) -->
-      <div id="man-dynamic-wrap" style="display:none;margin-bottom:16px">
-        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:8px">Signaux I/O détectés</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="man-dynamic-signals"></div>
-      </div>
-
-      <!-- Résumé -->
-      <div id="man-resume" style="display:none;background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);border-radius:9px;padding:12px;margin-bottom:14px">
-        <div style="font-size:10px;font-weight:700;color:var(--accent);margin-bottom:8px">Vecteur de test généré</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px" id="man-resume-grid"></div>
-      </div>
-
-      <!-- Bouton Passer au test -->
-      <button onclick="manConfirmAndLaunch()"
-        style="width:100%;padding:12px;background:var(--accent);border:none;border-radius:var(--r);
-               color:#000;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--mono)">
-        ▶ Confirmer et passer au test
-      </button>
     </div>
 
     <!-- Génération par IA (visible si stratégie IA sélectionnée) -->
@@ -753,9 +743,20 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div class="video-list" id="scenario-list-s3"></div>
     </div>
 
-    <!-- Bouton compiler + lancer -->
-    <div style="display:flex;flex-direction:column;gap:10px;margin-top:24px">
-    
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="go(1)">Retour</button>
+      <button class="btn-primary" onclick="go(3)">Suivant <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+    </div>
+  </div>
+
+  <!-- ═══ SCREEN 4 — Compilation ═══ -->
+  <div class="screen" id="sc2b">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Compilation du firmware</div>
+        <div class="card-sub">Compilez les sources uploadées, puis lancez les tests sur le firmware compilé</div>
+      </div>
+
       <!-- Statut build -->
       <div id="build-status-bar" style="display:none;padding:12px 16px;
            background:var(--bg3);border:1px solid var(--border);
@@ -777,10 +778,10 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
                border-radius:2px;transition:width .5s"></div>
         </div>
       </div>
-    
-      <div class="btn-row" style="margin-top:0">
-        <button class="btn-secondary" onclick="go(1)">Retour</button>
-    
+
+      <div class="btn-row" style="margin-top:16px">
+        <button class="btn-secondary" onclick="go(2)">Retour</button>
+
         <!-- Bouton 1 : Compiler -->
         <button class="btn-primary" id="btn-compile" onclick="compileFirmware()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -791,18 +792,18 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           Compiler le firmware
         </button>
 
-    <!-- Bouton 2 : Lancer (désactivé jusqu'au build OK) -->
-      <button class="btn-launch" id="btn-launch-tests"
-              onclick="launchAllTests()" disabled
-              style="opacity:.4;cursor:not-allowed">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2.5">
-          <polygon points="5 3 19 12 5 21 5 3"/>
-        </svg>
-        Lancer les tests
-      </button>
+        <!-- Bouton 2 : Lancer (désactivé jusqu'au build OK) -->
+        <button class="btn-launch" id="btn-launch-tests"
+                onclick="launchAllTests()" disabled
+                style="opacity:.4;cursor:not-allowed">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          Lancer les tests
+        </button>
+      </div>
     </div>
-  </div>
   </div>
   
   <!-- ═══ SCREEN 4 — TEST BENCH ═══ -->
@@ -1620,7 +1621,7 @@ async function openBench(idx){
 
   buildNav(idx);
   updateStats();
-  go(3);
+  go(4);
 }
 // ── Screen 3 : refresh liste scénarios
 
@@ -2059,22 +2060,11 @@ function selectStrategy(n){
   strategy=n;
   document.getElementById('str0').classList.toggle('selected',n===0);
   document.getElementById('str1').classList.toggle('selected',n===1);
-  // Mes propres tests
-  document.getElementById('manual-tests-card').style.display  = n===0?'block':'none';
-  // IA → afficher le bouton de génération + la liste scénarios
+  // Mes propres tests → directement l'import CSV (plus de sous-choix)
+  document.getElementById('sub-upload-card').style.display    = n===0?'block':'none';
+  document.getElementById('scenarios-list-card').style.display= (n===0||n===1)?'block':'none';
+  // IA → afficher le bouton de génération
   document.getElementById('ai-generate-card').style.display   = n===1?'block':'none';
-  document.getElementById('scenarios-list-card').style.display= n===1?'block':'none';
-  // Reset sous-mode
-  if(n===0){
-    document.getElementById('ai-generate-card').style.display = 'none';
-    document.getElementById('sub-upload-card').style.display  = 'none';
-    document.getElementById('sub-manual-card').style.display  = 'none';
-    document.getElementById('scenarios-list-card').style.display='none';
-    document.getElementById('sub-upload').classList.remove('selected');
-    document.getElementById('sub-manual').classList.remove('selected');
-    // Peupler le select vidéo
-    manPopulateVideoSelect();
-  }
 }
 
 // ══════════════════════════════════════════════
@@ -2676,8 +2666,13 @@ async function uploadMultipleFiles(input, type){
   if(!files.length) return;
   if(!PROJECT_ID){ showToast('⚠️ Crée d\'abord un projet','error'); return; }
 
-  const listId = type==='bin' ? 'bin-files-list' : 'spec-files-list';
-  const list   = document.getElementById(listId);
+  // Catégorisation visuelle uniquement — tous les fichiers vont dans le
+  // même dossier S3 plat projects/{id}/software/, comme avant.
+  // Ça garde la compatibilité avec le pipeline CodeBuild existant tout
+  // en donnant au testeur une vue claire de ce qu'il enregistre.
+  const listIds = { model:'bin-files-list-model', rte:'bin-files-list-rte', bsw:'bin-files-list-bsw' };
+  const listId  = listIds[type] || 'bin-files-list-model';
+  const list    = document.getElementById(listId);
 
   for(const file of files){
     // Item en attente
