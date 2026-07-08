@@ -1023,7 +1023,10 @@ const DEMO = API.includes('XXXXXXXX');
 // ══════════════════════════════════════════════
 // AUTH — Cognito Hosted UI (Authorization Code + PKCE)
 // ══════════════════════════════════════════════
-// ⚠️ À remplir avec vos vraies valeurs (voir COGNITO_DEPLOY.md)
+// ⚠️ Mis de côté temporairement (redirect_mismatch à régler plus tard) —
+// repasser à `true` une fois le callback_url Cognito résolu.
+const AUTH_TEMPORARILY_DISABLED = true;
+
 const AUTH_CONFIG = {
   domain:      'vecu-auth-lpa2026.auth.eu-west-3.amazoncognito.com',
   clientId:    '4m5e3leso5kn3173p2kf3fbif',
@@ -1031,7 +1034,7 @@ const AUTH_CONFIG = {
   scope:       'openid email profile',
   region:      'eu-west-3'
 };
-const AUTH_ENABLED = !AUTH_CONFIG.clientId.startsWith('REPLACE_');
+const AUTH_ENABLED = !AUTH_TEMPORARILY_DISABLED && !AUTH_CONFIG.clientId.startsWith('REPLACE_');
 
 let AUTH_TOKENS = null;   // {id_token, access_token, refresh_token, expires_at}
 let AUTH_CLAIMS = null;   // payload décodé de l'id_token {email, 'cognito:groups', ...}
