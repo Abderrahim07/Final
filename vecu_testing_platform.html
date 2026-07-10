@@ -265,6 +265,18 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
 /* RESULTS SUMMARY */
 .results-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+
+/* Grille de scénarios (Test Bench parallèle) */
+.scenario-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;cursor:pointer;transition:all .2s}
+.scenario-card:hover{border-color:rgba(0,212,255,.3);transform:translateY(-2px)}
+.scenario-card.running{border-color:rgba(0,212,255,.4)}
+.scenario-card.pass{border-color:rgba(0,229,160,.4)}
+.scenario-card.fail{border-color:rgba(255,92,92,.4)}
+.scenario-card-thumb{height:100px;background:var(--bg4);position:relative;overflow:hidden}
+.scenario-card-thumb video{width:100%;height:100%;object-fit:cover}
+.scenario-card-body{padding:10px 12px}
+.scenario-card-name{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scenario-card-status{margin-top:6px}
 .rs{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;text-align:center}
 .rs-val{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text1);margin-bottom:2px}
 .rs-label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
@@ -481,6 +493,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="step-item" id="nav3"><div class="step-num" id="num3">4</div><div class="step-label">Compilation</div></div>
     <div class="step-sep"></div>
     <div class="step-item" id="nav4"><div class="step-num" id="num4">5</div><div class="step-label">Test Bench</div></div>
+    <div class="step-sep"></div>
+    <div class="step-item" id="nav5"><div class="step-num" id="num5">6</div><div class="step-label">Dashboard</div></div>
   </div>
 
   <!-- ═══ SCREEN 1 — Projet ═══ -->
@@ -817,188 +831,80 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div class="rs"><div class="rs-val" style="color:var(--accent)" id="rs-rate">—</div><div class="rs-label">Taux réussite</div></div>
     </div>
 
-    <!-- Navigation scénarios -->
-    <div class="sc-nav" id="sc-nav"></div>
-
-    <!-- TEST BENCH -->
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden">
-
-      <!-- Header bench -->
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--bg3);border-bottom:1px solid var(--border)">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)"></div>
-          <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text1)" id="bench-title">LANE PROTECTION ASSIST — TEST BENCH</span>
+    <!-- ═══ VUE GRILLE — tous les scénarios en parallèle ═══ -->
+    <div id="scenario-grid-view">
+      <div class="card">
+        <div class="card-head" style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div class="card-title">🚀 Lancement des tests</div>
+            <div class="card-sub">Tous les scénarios s'exécutent en parallèle, chacun dans sa propre tâche ECS isolée</div>
+          </div>
+          <button class="btn-launch" id="btn-launch-parallel" onclick="launchAllTestsParallel()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Lancer tous les tests
+          </button>
         </div>
-        <div style="display:flex;align-items:center;gap:16px">
-          <span style="font-family:var(--mono);font-size:10px;color:var(--text2)" id="bench-frame">FRAME 0/0</span>
-          <span style="font-family:var(--mono);font-size:10px;color:var(--text2)" id="bench-time">00:00:00</span>
-          <span class="tag tag-cyan" id="bench-status-top">IDLE</span>
+
+        <div id="global-progress-bar" style="display:none;margin-top:10px;padding:12px 16px;
+             background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
+             font-family:var(--mono);font-size:11px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div id="global-progress-dot" style="width:8px;height:8px;border-radius:50%;background:var(--amber);animation:pulse 1s infinite"></div>
+              <span id="global-progress-text" style="color:var(--text2)">0 / 0 scénarios terminés</span>
+            </div>
+          </div>
+          <div style="margin-top:8px;height:3px;background:var(--border2);border-radius:2px;overflow:hidden">
+            <div id="global-progress-fill" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:2px;transition:width .5s"></div>
+          </div>
         </div>
       </div>
 
-      <!-- 3 colonnes -->
-      <div class="bench-layout">
+      <div class="grid-scenarios" id="scenario-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:14px"></div>
 
-        <!-- LEFT -->
-        <div class="bench-left">
-          <div>
-            <div class="bench-section-label">Video File</div>
-            <select class="video-selector" id="bench-video-select" onchange="switchBenchVideo()"></select>
-          </div>
+      <div class="btn-row" style="margin-top:14px">
+        <button class="btn-secondary" onclick="go(3)">← Retour à la compilation</button>
+        <button class="btn-primary" id="btn-go-dashboard" onclick="go(4)" disabled style="opacity:.4;cursor:not-allowed">
+          Voir le Dashboard <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
 
-          <div>
-            <div class="bench-section-label">Vehicle Speed</div>
-            <div class="speed-row">
-              <span class="speed-label">Speed</span>
-              <span class="speed-val" id="bench-speed-val">54 km/h</span>
-            </div>
-            <input type="range" class="slider" id="bench-speed-slider" min="0" max="200" value="54" oninput="updateSpeed(this.value)"/>
-          </div>
+    <!-- ═══ VUE DÉTAIL — un scénario, valeurs réelles, générique ═══ -->
+    <div id="scenario-detail-view" style="display:none">
+      <button class="btn-secondary" onclick="closeScenarioDetail()" style="margin-bottom:14px">← Retour à la grille</button>
 
-          <div>
-            <div class="bench-section-label">Controls</div>
-            <div class="toggle-row">
-              <span class="toggle-label">LPA ACTIVATED</span>
-              <label class="toggle"><input type="checkbox" id="lpa-toggle" checked/><span class="toggle-slider"></span></label>
-            </div>
-            <div class="toggle-row">
-              <span class="toggle-label">TURN SIGNAL</span>
-              <label class="toggle"><input type="checkbox" id="turn-toggle"/><span class="toggle-slider"></span></label>
-            </div>
-          </div>
+      <div style="display:grid;grid-template-columns:1fr 380px;gap:14px">
 
-          <div>
-            <div class="bench-section-label">Lane State</div>
-            <div class="lane-state-box">
-              <div class="lane-state-active">
-                <div class="state-dot" id="state-dot"></div>
-                <span class="state-name" id="state-name">ACTIVE</span>
-              </div>
-              <div class="state-code" id="state-code">System state: 0x01</div>
-            </div>
-          </div>
-
-          <div>
-            <div class="bench-section-label">Warnings</div>
-            <div class="warn-btns">
-              <div class="warn-btn" id="warn-left">◄ WARN LEFT</div>
-              <div class="warn-btn" id="warn-right">WARN RIGHT ►</div>
-            </div>
-          </div>
-
-          <div>
-            <div class="bench-section-label">Lane Offset</div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-              <span style="font-family:var(--mono);font-size:9px;color:var(--text3)">POSITION</span>
-              <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent)" id="offset-val">+0.0%</span>
-            </div>
-            <div class="offset-bar">
-              <div class="offset-indicator" id="offset-indicator" style="left:calc(50% - 4px)"></div>
-            </div>
-          </div>
-
-          <div style="margin-top:auto">
-            <button class="btn-start" id="btn-start-bench" onclick="toggleBenchRun()">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              START
-            </button>
-          </div>
+        <!-- Vidéo -->
+        <div style="background:#000;border-radius:var(--rl);overflow:hidden;position:relative;min-height:360px">
+          <video id="detail-video" loop muted playsinline autoplay style="width:100%;height:100%;object-fit:cover"></video>
+          <div style="position:absolute;top:12px;left:12px;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text1)" id="detail-title">—</div>
+          <span class="tag" id="detail-status-badge" style="position:absolute;top:12px;right:12px">—</span>
         </div>
 
-        <!-- CENTER -->
-        <div class="bench-center">
-          <div class="bench-video-wrap">
-            <video id="bench-video" loop playsinline style="width:100%;height:100%;object-fit:cover"></video>
-            <div class="bench-hud">
-              <div class="hud-bracket hud-tl"></div>
-              <div class="hud-bracket hud-tr"></div>
-              <div class="hud-bracket hud-bl"></div>
-              <div class="hud-bracket hud-br"></div>
-              <div class="hud-frame" id="hud-frame">FRAME: 0</div>
-              <div class="hud-status idle" id="hud-status">IDLE</div>
-              <div class="hud-conf" id="hud-conf">CONF: 0%</div>
-              <div class="hud-lpa-label" id="hud-lpa-label" style="display:none">● LPA ACTIVE</div>
-            </div>
-          </div>
-          <div class="bench-bottom">
-            <div class="bottom-metric">
-              <div class="bottom-metric-label">Speed</div>
-              <div class="bottom-metric-val" id="bm-speed">54</div>
-              <div class="bottom-metric-unit">KM/H</div>
-            </div>
-            <div class="bottom-metric" style="display:flex;flex-direction:column;justify-content:center">
-              <div class="bottom-metric-label">Steering</div>
-              <svg width="60" height="50" style="margin:0 auto"><path d="M10 40 Q30 10 50 40" stroke="var(--accent)" stroke-width="2" fill="none"/><circle id="steering-dot" cx="30" cy="25" r="4" fill="var(--accent)"/></svg>
-            </div>
-            <div class="bottom-metric">
-              <div class="bottom-metric-label">Confidence</div>
-              <div class="bottom-metric-val" style="color:var(--green)" id="bm-conf">0</div>
-              <div class="bottom-metric-unit">SCORE</div>
-            </div>
-            <div class="conf-wrap">
-              <div class="conf-label-row">
-                <span style="font-family:var(--mono);font-size:9px;color:var(--text3)">CONF LEVEL</span>
-                <span style="font-family:var(--mono);font-size:9px;color:var(--text3)" id="conf-pct">0%</span>
-              </div>
-              <div class="conf-bar"><div class="conf-fill" id="conf-fill" style="width:0%"></div></div>
-            </div>
-          </div>
-        </div>
+        <!-- Panneau info générique -->
+        <div style="display:flex;flex-direction:column;gap:12px">
 
-        <!-- RIGHT -->
-        <div class="bench-right">
-          <div class="bench-section-label">Session Metrics</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            <div class="metric-box">
-              <div class="metric-box-label">LPA Active</div>
-              <div class="metric-box-val on" id="rm-lpa">ON</div>
-            </div>
-            <div class="metric-box">
-              <div class="metric-box-label">Frames Proc.</div>
-              <div class="metric-box-val" id="rm-frames">0</div>
-            </div>
-            <div class="metric-box">
-              <div class="metric-box-label">Warn Left</div>
-              <div class="metric-box-val" id="rm-wl">0</div>
-            </div>
-            <div class="metric-box">
-              <div class="metric-box-label">Warn Right</div>
-              <div class="metric-box-val" id="rm-wr">0</div>
-            </div>
-            <div class="metric-box">
-              <div class="metric-box-label">Active Frames</div>
-              <div class="metric-box-val" id="rm-af">0</div>
-            </div>
-            <div class="metric-box">
-              <div class="metric-box-label">Status</div>
-              <div class="metric-box-val" id="rm-status">IDLE</div>
-            </div>
+          <div class="card" style="margin:0">
+            <div class="card-title" style="font-size:11px">🎛 Vecteur de test (entrées)</div>
+            <div id="detail-inputs" style="margin-top:8px;display:flex;flex-direction:column;gap:6px"></div>
           </div>
 
-          <div class="bench-section-label" style="margin-top:4px">Output Signals</div>
-          <div class="output-signals">
-            <div class="output-sig-row"><span class="output-sig-name">LPA_Active</span><span class="output-sig-val ok" id="os-lpa">1</span></div>
-            <div class="output-sig-row"><span class="output-sig-name">Warning_L</span><span class="output-sig-val" id="os-wl">0</span></div>
-            <div class="output-sig-row"><span class="output-sig-name">Warning_R</span><span class="output-sig-val" id="os-wr">0</span></div>
-            <div class="output-sig-row"><span class="output-sig-name">Sys_State</span><span class="output-sig-val" id="os-state">0x01</span></div>
-            <div class="output-sig-row"><span class="output-sig-name">leftType</span><span class="output-sig-val" id="os-lt">1.0</span></div>
-            <div class="output-sig-row"><span class="output-sig-name">rightType</span><span class="output-sig-val" id="os-rt">1.0</span></div>
+          <div class="card" style="margin:0">
+            <div class="card-title" style="font-size:11px">📊 Résultats (sorties)</div>
+            <div id="detail-outputs" style="margin-top:8px;display:flex;flex-direction:column;gap:6px"></div>
           </div>
 
-          <div class="bench-section-label" style="margin-top:4px">Connection</div>
-          <div class="conn-box">
-            <div class="conn-status"><div class="conn-dot"></div>Server: ONLINE</div>
-            <div class="conn-detail">
-              SocketIO realtime stream<br>
-              Prometheus on /metrics<br>
-              Grafana scrape interval: 1s
-            </div>
+          <div class="card" style="margin:0" id="detail-reason-card">
+            <div class="card-title" style="font-size:11px">Verdict</div>
+            <div id="detail-reason" style="margin-top:6px;font-size:11px;color:var(--text2);font-family:var(--mono)">—</div>
           </div>
         </div>
       </div>
 
       <!-- SYSTEM LOG -->
-      <div class="bench-log">
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);margin-top:14px;overflow:hidden">
         <div class="log-header">
           <span class="log-header-label">System Log</span>
           <button class="log-clear" onclick="clearLog()">CLEAR</button>
@@ -1006,9 +912,38 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div class="log-body" id="bench-log-body"></div>
       </div>
     </div>
+  </div>
 
-    <div class="btn-row" style="margin-top:14px">
-      <button class="btn-secondary" onclick="go(2)">← Retour aux tests</button>
+  <!-- ═══ SCREEN 6 — Dashboard résultats ═══ -->
+  <div class="screen" id="sc4">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">📊 Dashboard des résultats</div>
+        <div class="card-sub">Vue d'ensemble de la campagne de test</div>
+      </div>
+      <div class="results-bar" id="dash-results-bar">
+        <div class="rs"><div class="rs-val" id="dash-total">0</div><div class="rs-label">Scénarios</div></div>
+        <div class="rs"><div class="rs-val" style="color:var(--green)" id="dash-pass">0</div><div class="rs-label">PASS</div></div>
+        <div class="rs"><div class="rs-val" style="color:var(--red)" id="dash-fail">0</div><div class="rs-label">FAIL</div></div>
+        <div class="rs"><div class="rs-val" style="color:var(--accent)" id="dash-rate">—</div><div class="rs-label">Taux réussite</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Détail par scénario</div>
+      </div>
+      <div class="tv-table-wrap">
+        <table class="tv-table" id="dash-table">
+          <thead><tr><th>Scénario</th><th>Statut</th><th>Verdict</th><th>Frames</th></tr></thead>
+          <tbody id="dash-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="go(3)">← Retour au Test Bench</button>
+      <button class="btn-primary" onclick="startNewProject()">Nouveau projet</button>
     </div>
   </div>
 
@@ -1571,64 +1506,297 @@ function renderScenarioList(){
     }
   });
 }
-async function openBench(idx){
-  activeIdx = idx;
-  const sc  = scenarios[idx];
-  benchRunning = false;
-  frameCount = 0; warnLeftCount = 0; warnRightCount = 0; activeFrames = 0;
+// ══════════════════════════════════════════════
+// TEST BENCH PARALLÈLE — générique (basé sur test_vector/expected/actual)
+// ══════════════════════════════════════════════
 
-  document.getElementById('bench-title').textContent = `${sc.name.toUpperCase()} — TEST BENCH`;
-  document.getElementById('bench-status-top').textContent = 'IDLE';
-  document.getElementById('bench-status-top').className   = 'tag tag-gray';
+function renderScenarioGrid(){
+  const grid = document.getElementById('scenario-grid');
+  grid.innerHTML = scenarios.map((sc,i) => {
+    const status = sc.status || 'idle';
+    const badge  = status==='pass' ? '<span class="tag tag-green">PASS</span>'
+                 : status==='fail' ? '<span class="tag tag-red">FAIL</span>'
+                 : status==='running' ? '<span class="tag tag-cyan">EN COURS</span>'
+                 : '<span class="tag tag-gray">EN ATTENTE</span>';
+    return `
+      <div class="scenario-card ${status}" onclick="openScenarioDetail(${i})">
+        <div class="scenario-card-thumb" id="grid-thumb-${i}">
+          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          </div>
+        </div>
+        <div class="scenario-card-body">
+          <div class="scenario-card-name">SC${i+1} — ${sc.name}</div>
+          <div class="scenario-card-status">${badge}</div>
+        </div>
+      </div>`;
+  }).join('');
 
-  const video = document.getElementById('bench-video');
-
-  if(sc.file){
-    // Fichier local → lecture directe
-    video.src = URL.createObjectURL(sc.file);
-    video.load();
-  } else if(sc.s3key && !DEMO){
-    // Fichier S3 → presigned URL de lecture
-    try{
-      const resp = await apiFetch(
-        `${API}/projects/${PROJECT_ID}/read-url?key=${encodeURIComponent(sc.s3key)}`
-      );
-      let d = JSON.parse(await resp.text());
-      if(d.body && typeof d.body === 'string') d = JSON.parse(d.body);
-      if(d.read_url){
-        video.src = d.read_url;
-        video.load();
-      }
-    }catch(e){
-      console.warn('[READ URL]', e.message);
+  scenarios.forEach((sc,i)=>{
+    if(sc.file){
+      const v = document.createElement('video');
+      v.src = URL.createObjectURL(sc.file); v.muted=true; v.loop=true;
+      v.style = 'width:100%;height:100%;object-fit:cover';
+      const thumb = document.getElementById(`grid-thumb-${i}`);
+      if(thumb){ thumb.innerHTML=''; thumb.appendChild(v); }
     }
-  }
+  });
+}
 
-  // Lier le vecteur de test
+function updateGlobalProgress(){
+  const total = scenarios.length;
+  const done  = scenarios.filter(s => s.status==='pass' || s.status==='fail').length;
+  const bar   = document.getElementById('global-progress-bar');
+  bar.style.display = 'block';
+  document.getElementById('global-progress-text').textContent = `${done} / ${total} scénarios terminés`;
+  document.getElementById('global-progress-fill').style.width = total ? `${(done/total)*100}%` : '0%';
+  const dot = document.getElementById('global-progress-dot');
+  if(done === total && total > 0){
+    dot.style.animation = 'none'; dot.style.background = 'var(--green)';
+    document.getElementById('btn-go-dashboard').disabled = false;
+    document.getElementById('btn-go-dashboard').style.opacity = '1';
+    document.getElementById('btn-go-dashboard').style.cursor  = 'pointer';
+    renderDashboard();
+  }
+  updateStats();
+}
+
+async function launchAllTestsParallel(){
+  if(scenarios.length === 0){ showToast('⚠️ Aucun scénario disponible','error'); return; }
+
+  document.getElementById('scenario-grid-view').style.display = 'block';
+  document.getElementById('scenario-detail-view').style.display = 'none';
+  scenarios.forEach(sc => sc.status = 'running');
+  renderScenarioGrid();
+  updateGlobalProgress();
+
+  const btn = document.getElementById('btn-launch-parallel');
+  btn.disabled = true; btn.style.opacity = '.5';
+
+  // Tous les scénarios sont lancés EN PARALLÈLE (pas de await séquentiel)
+  scenarios.forEach((sc, idx) => launchSingleScenario(idx));
+}
+
+async function launchSingleScenario(idx){
+  const sc = scenarios[idx];
   const tv = testVectors.find(v => v.scenario === sc.name)
            || sc.test_vector
            || testVectors[idx]
-           || null;
+           || {};
 
-  const sel = document.getElementById('bench-video-select');
-  sel.innerHTML = scenarios.map((s,i) =>
-    `<option value="${i}" ${i===idx?'selected':''}>${s.filename}</option>`
-  ).join('');
+  if(DEMO){
+    await sleep(1500 + Math.random()*2000);
+    const passed = Math.random() > 0.25;
+    sc.status = passed ? 'pass' : 'fail';
+    sc.result = {
+      scenario_name: sc.name, total_frames: 240, passed,
+      reason: passed ? 'PASS' : 'expected_System_Active: attendu=1 obtenu=0',
+      expected: Object.fromEntries(Object.entries(tv).filter(([k])=>k.startsWith('expected_')).map(([k,v])=>[k.slice(9),v])),
+      actual:   Object.fromEntries(Object.entries(tv).filter(([k])=>k.startsWith('expected_')).map(([k,v])=>[k.slice(9), passed?v:'0'])),
+      test_vector: Object.fromEntries(Object.entries(tv).filter(([k])=>!k.startsWith('expected_') && k!=='scenario'))
+    };
+    renderScenarioGrid();
+    updateGlobalProgress();
+    return;
+  }
 
-  resetBenchMetrics();
-  clearLog();
-  addLog(`[INIT] Scénario : ${sc.name}`,'info');
-  addLog(`[S3] Vidéo : ${sc.s3key || sc.filename}`,'info');
-  if(tv) addLog(`[TEST] Vecteur : speed=${tv.speed} lpa=${tv.lpa_ct} turn=${tv.turn_signal}`,'info');
-  else   addLog('[TEST] Aucun vecteur associé','');
+  try{
+    const resp = await apiFetch(`${API}/projects/${PROJECT_ID}/run`, {
+      method:  'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        scenario_file:  sc.filename,
+        scenario_name:  sc.name,
+        scenario_s3key: sc.s3key,
+        test_vector:    tv
+      })
+    });
 
-  buildNav(idx);
-  updateStats();
-  go(4);
+    if(!resp.ok){
+      sc.status = 'fail'; sc.result = { reason: `Erreur /run ${resp.status}` };
+      renderScenarioGrid(); updateGlobalProgress();
+      return;
+    }
+
+    let data = JSON.parse(await resp.text());
+    if(data.body && typeof data.body === 'string') data = JSON.parse(data.body);
+
+    if(!data.run_id){
+      sc.status = 'fail'; sc.result = { reason: 'run_id manquant' };
+      renderScenarioGrid(); updateGlobalProgress();
+      return;
+    }
+
+    sc.run_id = data.run_id;
+    pollScenarioResult(idx, sc.name, data.run_id);
+
+  }catch(e){
+    sc.status = 'fail'; sc.result = { reason: e.message };
+    renderScenarioGrid(); updateGlobalProgress();
+  }
 }
-// ── Screen 3 : refresh liste scénarios
 
-// ── Load test file CSV (preview)
+async function pollScenarioResult(idx, scenarioName, runId){
+  const maxAttempts = 60; // 60 × 5s = 5 min
+
+  for(let i = 0; i < maxAttempts; i++){
+    await sleep(5000);
+    try{
+      const resp = await apiFetch(
+        `${API}/projects/${PROJECT_ID}/results-status?run_id=${runId}&scenario=${scenarioName}`
+      );
+      let data = JSON.parse(await resp.text());
+      if(data.body && typeof data.body === 'string') data = JSON.parse(data.body);
+
+      if(data.status === 'DONE'){
+        const sc     = scenarios[idx];
+        const result = data.result || {};
+        const passed = !!result.passed;
+        sc.status = passed ? 'pass' : 'fail';
+        sc.result = result;
+        renderScenarioGrid();
+        updateGlobalProgress();
+        if(document.getElementById('scenario-detail-view').style.display !== 'none'
+           && activeIdx === idx){
+          renderDetailGeneric(idx);
+        }
+        return;
+
+      } else if(data.status === 'FAILED' || data.status === 'ERROR'){
+        scenarios[idx].status = 'fail';
+        scenarios[idx].result = { reason: data.error || data.reason || 'Échec ECS' };
+        renderScenarioGrid();
+        updateGlobalProgress();
+        return;
+      }
+    }catch(e){
+      console.warn('[POLL]', scenarioName, e.message);
+    }
+  }
+
+  scenarios[idx].status = 'fail';
+  scenarios[idx].result = { reason: 'Timeout après 5 min' };
+  renderScenarioGrid();
+  updateGlobalProgress();
+}
+
+// ── Vue détail générique (un scénario) ──
+async function openScenarioDetail(idx){
+  activeIdx = idx;
+  const sc = scenarios[idx];
+
+  document.getElementById('scenario-grid-view').style.display   = 'none';
+  document.getElementById('scenario-detail-view').style.display = 'block';
+  document.getElementById('detail-title').textContent = `SC${idx+1} — ${sc.name}`;
+
+  const video = document.getElementById('detail-video');
+  if(sc.file){
+    video.src = URL.createObjectURL(sc.file);
+    video.load();
+  } else if(sc.s3key && !DEMO){
+    try{
+      const resp = await apiFetch(`${API}/projects/${PROJECT_ID}/read-url?key=${encodeURIComponent(sc.s3key)}`);
+      let d = JSON.parse(await resp.text());
+      if(d.body && typeof d.body === 'string') d = JSON.parse(d.body);
+      if(d.read_url){ video.src = d.read_url; video.load(); }
+    }catch(e){ console.warn('[READ URL]', e.message); }
+  }
+
+  clearLog();
+  addLog(`[INIT] Scénario : ${sc.name}`, 'info');
+  renderDetailGeneric(idx);
+}
+
+function closeScenarioDetail(){
+  document.getElementById('scenario-detail-view').style.display = 'none';
+  document.getElementById('scenario-grid-view').style.display   = 'block';
+}
+
+// Rend uniquement les inputs/outputs réellement présents dans le vecteur
+// de test du testeur — plus de champs LPA codés en dur.
+function renderDetailGeneric(idx){
+  const sc = scenarios[idx];
+  const tv = testVectors.find(v => v.scenario === sc.name) || sc.test_vector || testVectors[idx] || {};
+  const result = sc.result || {};
+
+  const badge = document.getElementById('detail-status-badge');
+  if(sc.status === 'pass'){ badge.className='tag tag-green'; badge.textContent='PASS'; }
+  else if(sc.status === 'fail'){ badge.className='tag tag-red'; badge.textContent='FAIL'; }
+  else if(sc.status === 'running'){ badge.className='tag tag-cyan'; badge.textContent='EN COURS'; }
+  else { badge.className='tag tag-gray'; badge.textContent='EN ATTENTE'; }
+
+  // Inputs — tout ce qui n'est pas expected_* ni 'scenario'
+  const inputsEl = document.getElementById('detail-inputs');
+  const inputEntries = Object.entries(tv).filter(([k]) => k!=='scenario' && !k.startsWith('expected_') && !k.startsWith('_'));
+  inputsEl.innerHTML = inputEntries.length ? inputEntries.map(([k,v]) => `
+    <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px">
+      <span style="color:var(--text2)">${k}</span><span style="color:var(--accent);font-weight:700">${v}</span>
+    </div>`).join('') : `<div style="font-size:11px;color:var(--text3)">Aucun signal d'entrée dans ce vecteur</div>`;
+
+  // Outputs — expected vs actual, générique
+  const outputsEl = document.getElementById('detail-outputs');
+  const expected  = result.expected || {};
+  const actual    = result.actual   || {};
+  const names     = [...new Set([...Object.keys(expected), ...Object.keys(actual)])];
+
+  if(names.length === 0){
+    outputsEl.innerHTML = `<div style="font-size:11px;color:var(--text3)">${sc.status==='running'?'⏳ En attente des résultats...':"Aucun résultat pour l'instant"}</div>`;
+  } else {
+    outputsEl.innerHTML = names.map(name => {
+      const exp = expected[name], act = actual[name];
+      const match = String(exp).toLowerCase() === String(act).toLowerCase();
+      const icon  = match ? '✓' : '✗';
+      const color = match ? 'var(--green)' : 'var(--red)';
+      return `
+        <div style="display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:11px">
+          <span style="color:var(--text2)">${name}</span>
+          <span style="color:${color};font-weight:700">${icon} attendu=${exp ?? '—'} obtenu=${act ?? '—'}</span>
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('detail-reason').textContent =
+    result.reason || (sc.status==='running' ? 'Test en cours...' : 'Pas encore lancé');
+
+  if(sc.status==='running') addLog('[STATUS] En cours d\'exécution...', 'info');
+  else if(sc.status==='pass') addLog('[RESULT] ✅ PASS — '+(result.reason||''), 'ok');
+  else if(sc.status==='fail') addLog('[RESULT] ❌ FAIL — '+(result.reason||''), 'err');
+}
+
+function renderTVPreview(headers,rows){
+  const preview=document.getElementById('tv-preview');
+  const table=document.getElementById('tv-table');
+  preview.style.display='block';
+  table.querySelector('thead').innerHTML='<tr>'+headers.map(h=>`<th>${h}</th>`).join('')+'</tr>';
+  table.querySelector('tbody').innerHTML=rows.slice(0,5).map(r=>'<tr>'+headers.map(h=>`<td>${r[h]??'—'}</td>`).join('')+'</tr>').join('');
+}
+
+// ── Dashboard final ──
+function renderDashboard(){
+  const total  = scenarios.length;
+  const passed = scenarios.filter(s=>s.status==='pass').length;
+  const failed = scenarios.filter(s=>s.status==='fail').length;
+
+  document.getElementById('dash-total').textContent = total;
+  document.getElementById('dash-pass').textContent  = passed;
+  document.getElementById('dash-fail').textContent  = failed;
+  document.getElementById('dash-rate').textContent  = total ? Math.round((passed/total)*100)+'%' : '—';
+
+  document.getElementById('dash-table-body').innerHTML = scenarios.map((sc,i) => {
+    const result = sc.result || {};
+    const badge  = sc.status==='pass' ? '<span class="tag tag-green">PASS</span>'
+                 : sc.status==='fail' ? '<span class="tag tag-red">FAIL</span>'
+                 : '<span class="tag tag-gray">—</span>';
+    return `<tr style="cursor:pointer" onclick="go(4);openScenarioDetail(${i})">
+      <td>SC${i+1} — ${sc.name}</td>
+      <td>${badge}</td>
+      <td>${result.reason || '—'}</td>
+      <td>${result.total_frames ?? '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+
 function loadTestFile(input){
   const file=input.files[0]; if(!file) return;
   const reader=new FileReader();
@@ -1652,159 +1820,6 @@ function loadTestFile(input){
       }catch(e){ console.warn('[UPLOAD CSV]',e.message); }
     })();
   }
-}
-async function startBenchECS(){
-  const sc = scenarios[activeIdx];
-  const tv = testVectors.find(v => v.scenario === sc.name)
-           || sc.test_vector
-           || testVectors[0]
-           || {};
-
-  addLog(`[ECS] Lancement RunTask — scénario : ${sc.name}`, 'info');
-  addLog(`[ECS] Vecteur : ${JSON.stringify(tv)}`, 'info');
-
-  try{
-    const resp = await apiFetch(`${API}/projects/${PROJECT_ID}/run`, {
-      method:  'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        scenario_file:  sc.filename,
-        scenario_name:  sc.name,
-        scenario_s3key: sc.s3key,
-        test_vector:    tv
-      })
-    });
-
-    if(!resp.ok){
-      const errText = await resp.text();
-      addLog(`[ERROR] /run ${resp.status} — vérifier CloudWatch`, 'err');
-      addLog(`[ERROR] ${errText.slice(0,120)}`, 'err');
-      return;
-    }
-
-    let data = JSON.parse(await resp.text());
-    if(data.body && typeof data.body === 'string') data = JSON.parse(data.body);
-
-    if(!data.run_id || data.run_id === 'undefined'){
-      addLog('[ERROR] run_id manquant — Lambda a planté', 'err');
-      addLog(`[DEBUG] Réponse: ${JSON.stringify(data).slice(0,150)}`, 'err');
-      return;
-    }
-
-    addLog(`[ECS] ✅ Task lancée — ${data.task_arn?.split('/').pop() || 'N/A'}`, 'info');
-    addLog(`[ECS] Run ID : ${data.run_id}`, 'info');
-    addLog(`[S3] Résultats → projects/${PROJECT_ID}/results/${data.run_id}/`, 'info');
-
-    pollResults(sc.name, data.run_id);
-
-  }catch(e){
-    addLog(`[ERROR] startBenchECS: ${e.message}`, 'err');
-    scenarios[activeIdx].status = 'fail';
-    updateStats();
-  }
-}
-
-// Polling résultats S3
-async function pollResults(scenarioName, runId){
-  addLog('[POLL] Attente des résultats ECS...', 'info');
-  const maxAttempts = 60; // 60 × 5s = 5 min
-
-  for(let i = 0; i < maxAttempts; i++){
-    await sleep(5000);
-    try{
-      const resp = await apiFetch(
-        `${API}/projects/${PROJECT_ID}/results-status?run_id=${runId}&scenario=${scenarioName}`
-      );
-      let data = JSON.parse(await resp.text());
-      if(data.body && typeof data.body === 'string') data = JSON.parse(data.body);
-
-      if(data.status === 'DONE'){
-        const sc     = scenarios[activeIdx];
-        const result = data.result || {};
-        const passed = result.status === 'PASS';
-        sc.status    = passed ? 'pass' : 'fail';
-
-        // ── Afficher les vrais signaux firmware
-        const frames = result.frames_sample || result.frames || [];
-        if(frames.length > 0){
-          displayRealSignals(frames[frames.length - 1]);
-        }
-
-        // ── Métriques réelles
-        document.getElementById('rm-frames').textContent = result.total_frames  || 0;
-        document.getElementById('rm-wl').textContent     = result.warn_left     || 0;
-        document.getElementById('rm-wr').textContent     = result.warn_right    || 0;
-        document.getElementById('rm-af').textContent     = result.active_frames || 0;
-        document.getElementById('rm-status').textContent = passed ? 'PASS' : 'FAIL';
-        document.getElementById('rm-lpa').textContent    = result.actual?.lpa_active ? 'ON' : 'OFF';
-        document.getElementById('rm-lpa').className      = `metric-box-val ${result.actual?.lpa_active ? 'on' : 'off'}`;
-
-        // ── Badge résultat
-        document.getElementById('bench-status-top').textContent = passed ? 'PASS' : 'FAIL';
-        document.getElementById('bench-status-top').className   = passed ? 'tag tag-green' : 'tag tag-red';
-        setHudStatus(passed ? 'active' : 'idle');
-
-        // ── Logs résultat
-        addLog(`[RESULT] ${passed ? '✅ PASS' : '❌ FAIL'} — ${scenarioName}`, passed ? 'ok' : 'err');
-        addLog(`[RESULT] Frames: ${result.total_frames} | Active: ${result.active_frames} | Warn_L: ${result.warn_left} | Warn_R: ${result.warn_right}`, '');
-        addLog(`[RESULT] Conf moy: ${result.avg_confidence}% | Sys_State: 0x0${frames[frames.length-1]?.cause||0}`, 'ok');
-        addLog(`[S3] ✅ projects/${PROJECT_ID}/results/${runId}/${scenarioName}.json`, 'info');
-
-        // ── Afficher info mémoire si disponible
-        if(result.resource_report){
-          const rr = result.resource_report.estimated_resources;
-          addLog(`[MEM] Flash: ${rr?.flash_estimated_kb} KB | RAM: ${rr?.ram_total_estimated_kb} KB`, 'info');
-        }
-
-        updateStats();
-        buildNav(activeIdx);
-
-        // ── Auto-passer au scénario suivant
-        if(activeIdx + 1 < scenarios.length){
-          addLog(`[NEXT] ⏭ Scénario suivant dans 3s — SC${activeIdx+2}`, 'info');
-          setTimeout(() => openBench(activeIdx + 1), 3000);
-        } else {
-          addLog('[DONE] ✅ Tous les scénarios terminés', 'ok');
-        }
-        return;
-
-      } else if(data.status === 'FAILED' || data.status === 'ERROR'){
-        addLog(`[ERROR] ECS run a échoué : ${data.error || 'raison inconnue'}`, 'err');
-        scenarios[activeIdx].status = 'fail';
-        updateStats();
-        buildNav(activeIdx);
-        return;
-
-      } else {
-        addLog(`[POLL] ${i+1}/${maxAttempts} — Container actif...`, 'info');
-      }
-    }catch(e){
-      console.warn('[POLL]', e.message);
-    }
-  }
-
-  addLog('[TIMEOUT] Pas de résultat après 5 min', 'err');
-  document.getElementById('bench-status-top').textContent = 'TIMEOUT';
-  document.getElementById('bench-status-top').className   = 'tag tag-red';
-}
-
-// Afficher les vrais signaux du firmware
-function displayRealSignals(frame){
-  if(!frame) return;
-  document.getElementById('os-lpa').textContent   = frame.active ? '1' : '0';
-  document.getElementById('os-wl').textContent    = frame.warn_L ? '1' : '0';
-  document.getElementById('os-wr').textContent    = frame.warn_R ? '1' : '0';
-  document.getElementById('os-state').textContent = '0x0'+frame.cause;
-  document.getElementById('bm-conf').textContent  = Math.round(frame.conf||0);
-  document.getElementById('conf-fill').style.width = (frame.conf||0)+'%';
-  document.getElementById('hud-conf').textContent  = `CONF: ${Math.round(frame.conf||0)}%`;
-}
-function renderTVPreview(headers,rows){
-  const preview=document.getElementById('tv-preview');
-  const table=document.getElementById('tv-table');
-  preview.style.display='block';
-  table.querySelector('thead').innerHTML='<tr>'+headers.map(h=>`<th>${h}</th>`).join('')+'</tr>';
-  table.querySelector('tbody').innerHTML=rows.slice(0,5).map(r=>'<tr>'+headers.map(h=>`<td>${r[h]??'—'}</td>`).join('')+'</tr>').join('');
 }
 
 // ── Strategy
@@ -2051,7 +2066,8 @@ function builderConfirmAndLaunch(){
 
   showToast(`✅ Vecteur créé pour ${sc.name}`,'success');
   closeBuilder();
-  openBench(videoIdx);
+  go(4);
+  openScenarioDetail(videoIdx);
 }
 
 function selectStrategy(n){
@@ -2504,141 +2520,8 @@ function manConfirmAndLaunch(){
   tv.scenario=sc.name;
   testVectors.push(tv);
   showToast(`✅ Vecteur créé pour ${sc.name}`,'success');
-  openBench(videoIdx);
-}
-
-// ── Launch all
-function launchAllTests(){
-  if(scenarios.length===0){ showToast('⚠️ Uploade d\'abord des vidéos','error'); return; }
-  openBench(0);
-}
-
-// ══════════════════════════
-// BENCH
-// ══════════════════════════
-function switchBenchVideo(){
-  const idx=parseInt(document.getElementById('bench-video-select').value);
-  if(benchRunning) stopBench();
-  openBench(idx);
-}
-
-function buildNav(active){
-  const nav=document.getElementById('sc-nav');
-  nav.innerHTML=scenarios.map((sc,i)=>{
-    const icon=sc.status==='pass'?'✅':sc.status==='fail'?'❌':sc.status==='running'?'⏳':'○';
-    const cls=i===active?'sc-nav-btn active':sc.status==='pass'?'sc-nav-btn pass':sc.status==='fail'?'sc-nav-btn fail':'sc-nav-btn';
-    return `<button class="${cls}" onclick="openBench(${i})">${icon} SC${i+1} — ${sc.name.slice(0,10)}${sc.name.length>10?'…':''}</button>`;
-  }).join('');
-}
-
-// ── Start/Stop bench
-function toggleBenchRun(){
-  if(benchRunning){
-    stopBench();
-  } else {
-    startVideoOnly();   // joue la vidéo sans simulation
-    if(buildReady && !DEMO){
-      startBenchECS();  // lance ECS en parallèle
-    } else {
-      addLog('[WARN] Firmware non compilé — mode visualisation seule','');
-    }
-  }
-}
-
-function startVideoOnly(){
-  benchRunning = true;
-  const sc = scenarios[activeIdx];
-  sc.status = 'running';
-
-  const btn = document.getElementById('btn-start-bench');
-  btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> STOP';
-  btn.classList.add('running');
-
-  setHudStatus('running');
-  document.getElementById('bench-status-top').textContent = 'RUNNING';
-  document.getElementById('bench-status-top').className   = 'tag tag-cyan';
-  document.getElementById('rm-status').textContent        = 'RUN';
-  document.getElementById('hud-lpa-label').style.display  = 'block';
-
-  const video = document.getElementById('bench-video');
-  video.loop  = false;
-  video.play();
-  totalFrames = Math.round((video.duration || 30) * 30);
-
-  addLog(`[START] Vidéo lancée — ${sc.name}`, 'info');
-  addLog(`[ECS] Traitement firmware en cours sur AWS...`, 'info');
-
-  // Mise à jour du compteur de frames depuis la vidéo réelle
-  video.ontimeupdate = () => {
-    frameCount = Math.round(video.currentTime * 30);
-    const speed = document.getElementById('bench-speed-slider').value;
-    document.getElementById('hud-frame').textContent   = `FRAME: ${frameCount}`;
-    document.getElementById('bench-frame').textContent = `FRAME ${frameCount}/${totalFrames}`;
-    document.getElementById('bm-speed').textContent    = speed;
-  };
-
-  video.onended = () => {
-    benchRunning = false;
-    clearInterval(benchInterval);
-    const btn2 = document.getElementById('btn-start-bench');
-    btn2.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg> RESTART';
-    btn2.classList.remove('running');
-    document.getElementById('hud-lpa-label').style.display = 'none';
-    addLog('[VIDEO] Fin de la vidéo — en attente résultats ECS...', 'info');
-    document.getElementById('bench-status-top').textContent = 'WAIT ECS';
-    document.getElementById('bench-status-top').className   = 'tag tag-amber';
-    setHudStatus('idle');
-  };
-}
-function stopBench(){
-  benchRunning=false;
-  clearInterval(benchInterval);
-  const video=document.getElementById('bench-video');
-  video.pause();
-  const btn=document.getElementById('btn-start-bench');
-  btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg> START';
-  btn.classList.remove('running');
-  setHudStatus('idle');
-  document.getElementById('bench-status-top').textContent='STOPPED';
-  document.getElementById('bench-status-top').className='tag tag-amber';
-  addLog('[STOP] Simulation arrêtée manuellement','');
-}
-
-function finishBench(){
-  // Cette fonction n'est plus utilisée pour le PASS/FAIL
-  // Le résultat vient exclusivement de pollResults() via ECS
-  benchRunning = false;
-  clearInterval(benchInterval);
-}
-
-function resetBenchMetrics(){
-  ['bm-speed','bm-conf','rm-frames','rm-wl','rm-wr','rm-af'].forEach(id=>document.getElementById(id).textContent='0');
-  document.getElementById('rm-lpa').textContent='ON';
-  document.getElementById('rm-lpa').className='metric-box-val on';
-  document.getElementById('rm-status').textContent='IDLE';
-  document.getElementById('conf-fill').style.width='0%';
-  document.getElementById('conf-pct').textContent='0%';
-  document.getElementById('hud-frame').textContent='FRAME: 0';
-  document.getElementById('hud-conf').textContent='CONF: 0%';
-  document.getElementById('bench-frame').textContent='FRAME 0/0';
-  document.getElementById('offset-val').textContent='+0.0%';
-  document.getElementById('offset-indicator').style.left='calc(50% - 4px)';
-  document.getElementById('warn-left').classList.remove('active');
-  document.getElementById('warn-right').classList.remove('active');
-  document.getElementById('hud-lpa-label').style.display='none';
-  ['os-wl','os-wr'].forEach(id=>{ document.getElementById(id).textContent='0'; document.getElementById(id).className='output-sig-val'; });
-}
-
-function setHudStatus(s){
-  const el=document.getElementById('hud-status');
-  const map={active:['active','ACTIVE'],running:['running','RUNNING'],idle:['idle','IDLE']};
-  const [cls,label]=map[s]||['idle','IDLE'];
-  el.className=`hud-status ${cls}`; el.textContent=label;
-}
-
-function updateSpeed(v){
-  document.getElementById('bench-speed-val').textContent=v+' km/h';
-  document.getElementById('bm-speed').textContent=v;
+  go(4);
+  openScenarioDetail(videoIdx);
 }
 
 function updateStats(){
@@ -2924,7 +2807,8 @@ function launchAllTests(){
   if(scenarios.length === 0){
     showToast('⚠️ Aucun scénario disponible','error'); return;
   }
-  openBench(0);
+  go(4);
+  launchAllTestsParallel();
 }
 function clearLog(){ document.getElementById('bench-log-body').innerHTML=''; }
 </script>
@@ -3320,7 +3204,8 @@ function scConfirm() {
   }
 
   closeScModal();
-  openBench(scModalIdx);
+  go(4);
+  openScenarioDetail(scModalIdx);
 }
 
 function closeScModal() {
