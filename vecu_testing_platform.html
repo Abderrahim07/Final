@@ -864,7 +864,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
       <div class="btn-row" style="margin-top:14px">
         <button class="btn-secondary" onclick="go(3)">← Retour à la compilation</button>
-        <button class="btn-primary" id="btn-go-dashboard" onclick="go(4)" disabled style="opacity:.4;cursor:not-allowed">
+        <button class="btn-primary" id="btn-go-dashboard" onclick="go(5)" disabled style="opacity:.4;cursor:not-allowed">
           Voir le Dashboard <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </button>
       </div>
@@ -1556,6 +1556,10 @@ function updateGlobalProgress(){
     document.getElementById('btn-go-dashboard').disabled = false;
     document.getElementById('btn-go-dashboard').style.opacity = '1';
     document.getElementById('btn-go-dashboard').style.cursor  = 'pointer';
+    // Réactive le bouton de lancement — permet de relancer une nouvelle campagne
+    const launchBtn = document.getElementById('btn-launch-parallel');
+    launchBtn.disabled = false;
+    launchBtn.style.opacity = '1';
     renderDashboard();
   }
   updateStats();
