@@ -1661,22 +1661,17 @@ async function startBenchECS(){
            || {};
 
   addLog(`[ECS] Lancement RunTask — scénario : ${sc.name}`, 'info');
-  addLog(`[ECS] Paramètres : speed=${tv.speed||54} lpa=${tv.lpa_ct||1} turn=${tv.turn_signal||0}`, 'info');
+  addLog(`[ECS] Vecteur : ${JSON.stringify(tv)}`, 'info');
 
   try{
     const resp = await apiFetch(`${API}/projects/${PROJECT_ID}/run`, {
       method:  'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
-        scenario_file: sc.filename,
-        scenario_name: sc.name,
+        scenario_file:  sc.filename,
+        scenario_name:  sc.name,
         scenario_s3key: sc.s3key,
-        speed:         String(tv.speed        || '54'),
-        lpa_ct:        String(tv.lpa_ct       || '1'),
-        turn_signal:   String(tv.turn_signal  || '0'),
-        expected_LPA_Active:    String(tv.expected_LPA_Active    || '1'),
-        expected_Warning_Left:  String(tv.expected_Warning_Left  || '0'),
-        expected_Warning_Right: String(tv.expected_Warning_Right || '0')
+        test_vector:    tv
       })
     });
 
