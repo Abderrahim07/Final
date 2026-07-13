@@ -1569,7 +1569,7 @@ function updateGlobalProgress(){
 // subnets (actuellement ~9 IPs libres au total sur 2 subnets). Chaque
 // scénario en cours consomme 1 IP (1 tâche Fargate = 1 ENI). Augmentez
 // cette valeur seulement si vous ajoutez des subnets avec plus de capacité.
-const MAX_CONCURRENT_LAUNCHES = 5;
+const MAX_CONCURRENT_LAUNCHES = 3;
 
 async function launchAllTestsParallel(){
   if(scenarios.length === 0){ showToast('⚠️ Aucun scénario disponible','error'); return; }
