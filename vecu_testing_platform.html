@@ -1565,24 +1565,46 @@ function updateGlobalProgress(){
   updateStats();
 }
 
+// ⚠️ Limite de concurrence — dimensionnée sur la capacité IP réelle de vos
+// subnets (actuellement ~9 IPs libres au total sur 2 subnets). Chaque
+// scénario en cours consomme 1 IP (1 tâche Fargate = 1 ENI). Augmentez
+// cette valeur seulement si vous ajoutez des subnets avec plus de capacité.
+const MAX_CONCURRENT_LAUNCHES = 5;
+
 async function launchAllTestsParallel(){
   if(scenarios.length === 0){ showToast('⚠️ Aucun scénario disponible','error'); return; }
 
   document.getElementById('scenario-grid-view').style.display = 'block';
   document.getElementById('scenario-detail-view').style.display = 'none';
-  scenarios.forEach(sc => sc.status = 'running');
+  scenarios.forEach(sc => { sc.status = 'idle'; sc.result = null; });
   renderScenarioGrid();
   updateGlobalProgress();
 
   const btn = document.getElementById('btn-launch-parallel');
   btn.disabled = true; btn.style.opacity = '.5';
 
-  // Tous les scénarios sont lancés EN PARALLÈLE (pas de await séquentiel)
-  scenarios.forEach((sc, idx) => launchSingleScenario(idx));
+  // Pool de workers : au plus MAX_CONCURRENT_LAUNCHES scénarios ont une
+  // tâche ECS active en même temps — les suivants attendent qu'un slot
+  // se libère (task terminée = IP relâchée) avant de démarrer.
+  const queue = scenarios.map((_, i) => i);
+  const workerCount = Math.min(MAX_CONCURRENT_LAUNCHES, queue.length);
+  addLog?.(`[LAUNCH] ${queue.length} scénario(s), ${workerCount} en parallèle max`, 'info');
+
+  async function worker(){
+    while(queue.length){
+      const idx = queue.shift();
+      await launchSingleScenario(idx); // attend la fin complète (task + résultat) avant de libérer le slot
+    }
+  }
+
+  await Promise.all(Array.from({length: workerCount}, () => worker()));
 }
 
 async function launchSingleScenario(idx){
   const sc = scenarios[idx];
+  sc.status = 'running';
+  renderScenarioGrid();
+
   const tv = testVectors.find(v => v.scenario === sc.name)
            || sc.test_vector
            || testVectors[idx]
@@ -1632,7 +1654,9 @@ async function launchSingleScenario(idx){
     }
 
     sc.run_id = data.run_id;
-    pollScenarioResult(idx, sc.name, data.run_id);
+    // ⚠️ await — le slot du pool ne se libère qu'une fois la tâche
+    // vraiment terminée (IP relâchée côté AWS), pas au lancement
+    await pollScenarioResult(idx, sc.name, data.run_id);
 
   }catch(e){
     sc.status = 'fail'; sc.result = { reason: e.message };
