@@ -837,9 +837,9 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div class="card-head" style="display:flex;align-items:center;justify-content:space-between">
           <div>
             <div class="card-title">🚀 Lancement des tests</div>
-            <div class="card-sub">Tous les scénarios s'exécutent en parallèle, chacun dans sa propre tâche ECS isolée</div>
+            <div class="card-sub">Tous les scénarios s'exécutent séquentiellement dans une seule tâche ECS</div>
           </div>
-          <button class="btn-launch" id="btn-launch-parallel" onclick="launchAllTestsParallel()">
+          <button class="btn-launch" id="btn-launch-parallel" onclick="launchAllTestsBulk()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             Lancer tous les tests
           </button>
@@ -1565,145 +1565,118 @@ function updateGlobalProgress(){
   updateStats();
 }
 
-// ⚠️ Limite de concurrence — dimensionnée sur la capacité IP réelle de vos
-// subnets (actuellement ~9 IPs libres au total sur 2 subnets). Chaque
-// scénario en cours consomme 1 IP (1 tâche Fargate = 1 ENI). Augmentez
-// cette valeur seulement si vous ajoutez des subnets avec plus de capacité.
-const MAX_CONCURRENT_LAUNCHES = 3;
-
-async function launchAllTestsParallel(){
+async function launchAllTestsBulk(){
   if(scenarios.length === 0){ showToast('⚠️ Aucun scénario disponible','error'); return; }
 
   document.getElementById('scenario-grid-view').style.display = 'block';
   document.getElementById('scenario-detail-view').style.display = 'none';
-  scenarios.forEach(sc => { sc.status = 'idle'; sc.result = null; });
+  scenarios.forEach(sc => { sc.status = 'running'; sc.result = null; });
   renderScenarioGrid();
   updateGlobalProgress();
 
   const btn = document.getElementById('btn-launch-parallel');
   btn.disabled = true; btn.style.opacity = '.5';
 
-  // Pool de workers : au plus MAX_CONCURRENT_LAUNCHES scénarios ont une
-  // tâche ECS active en même temps — les suivants attendent qu'un slot
-  // se libère (task terminée = IP relâchée) avant de démarrer.
-  const queue = scenarios.map((_, i) => i);
-  const workerCount = Math.min(MAX_CONCURRENT_LAUNCHES, queue.length);
-  addLog?.(`[LAUNCH] ${queue.length} scénario(s), ${workerCount} en parallèle max`, 'info');
-
-  async function worker(){
-    while(queue.length){
-      const idx = queue.shift();
-      await launchSingleScenario(idx); // attend la fin complète (task + résultat) avant de libérer le slot
-    }
-  }
-
-  await Promise.all(Array.from({length: workerCount}, () => worker()));
-}
-
-async function launchSingleScenario(idx){
-  const sc = scenarios[idx];
-  sc.status = 'running';
-  renderScenarioGrid();
-
-  const tv = testVectors.find(v => v.scenario === sc.name)
-           || sc.test_vector
-           || testVectors[idx]
-           || {};
-
   if(DEMO){
-    await sleep(1500 + Math.random()*2000);
-    const passed = Math.random() > 0.25;
-    sc.status = passed ? 'pass' : 'fail';
-    sc.result = {
-      scenario_name: sc.name, total_frames: 240, passed,
-      reason: passed ? 'PASS' : 'expected_System_Active: attendu=1 obtenu=0',
-      expected: Object.fromEntries(Object.entries(tv).filter(([k])=>k.startsWith('expected_')).map(([k,v])=>[k.slice(9),v])),
-      actual:   Object.fromEntries(Object.entries(tv).filter(([k])=>k.startsWith('expected_')).map(([k,v])=>[k.slice(9), passed?v:'0'])),
-      test_vector: Object.fromEntries(Object.entries(tv).filter(([k])=>!k.startsWith('expected_') && k!=='scenario'))
-    };
-    renderScenarioGrid();
-    updateGlobalProgress();
+    await sleep(2000);
+    for(const sc of scenarios){
+      const tv = testVectors.find(v => v.scenario === sc.name) || sc.test_vector || {};
+      await sleep(800);
+      const passed = Math.random() > 0.25;
+      sc.status = passed ? 'pass' : 'fail';
+      sc.result = {
+        scenario_name: sc.name, total_frames: 240, passed,
+        reason: passed ? 'PASS' : 'expected_System_Active: attendu=1 obtenu=0',
+        expected: Object.fromEntries(Object.entries(tv).filter(([k])=>k.startsWith('expected_')).map(([k,v])=>[k.slice(9),v])),
+        actual:   Object.fromEntries(Object.entries(tv).filter(([k])=>k.startsWith('expected_')).map(([k,v])=>[k.slice(9), passed?v:'0'])),
+        test_vector: Object.fromEntries(Object.entries(tv).filter(([k])=>!k.startsWith('expected_') && k!=='scenario'))
+      };
+      renderScenarioGrid();
+      updateGlobalProgress();
+    }
     return;
   }
+
+  const scenariosPayload = scenarios.map(sc => ({
+    name: sc.name,
+    test_vector: testVectors.find(v => v.scenario === sc.name) || sc.test_vector || {}
+  }));
 
   try{
     const resp = await apiFetch(`${API}/projects/${PROJECT_ID}/run`, {
       method:  'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        scenario_file:  sc.filename,
-        scenario_name:  sc.name,
-        scenario_s3key: sc.s3key,
-        test_vector:    tv
-      })
+      body: JSON.stringify({ mode: 'bulk', scenarios: scenariosPayload })
     });
-
-    if(!resp.ok){
-      sc.status = 'fail'; sc.result = { reason: `Erreur /run ${resp.status}` };
-      renderScenarioGrid(); updateGlobalProgress();
-      return;
-    }
 
     let data = JSON.parse(await resp.text());
     if(data.body && typeof data.body === 'string') data = JSON.parse(data.body);
 
-    if(!data.run_id){
-      sc.status = 'fail'; sc.result = { reason: 'run_id manquant' };
+    if(!resp.ok || !data.run_id){
+      scenarios.forEach(sc => { sc.status='fail'; sc.result={reason: data.error || `Erreur /run ${resp.status}`}; });
       renderScenarioGrid(); updateGlobalProgress();
       return;
     }
 
-    sc.run_id = data.run_id;
-    // ⚠️ await — le slot du pool ne se libère qu'une fois la tâche
-    // vraiment terminée (IP relâchée côté AWS), pas au lancement
-    await pollScenarioResult(idx, sc.name, data.run_id);
+    addLog(`[BULK] 1 tâche lancée pour ${scenarios.length} scénario(s) — run_id=${data.run_id}`, 'info');
+    await pollBulkResult(data.run_id);
 
   }catch(e){
-    sc.status = 'fail'; sc.result = { reason: e.message };
+    scenarios.forEach(sc => { sc.status='fail'; sc.result={reason: e.message}; });
     renderScenarioGrid(); updateGlobalProgress();
   }
 }
 
-async function pollScenarioResult(idx, scenarioName, runId){
-  const maxAttempts = 60; // 60 × 5s = 5 min
+// Poll unique sur le global_report.json de la tâche (1 seule tâche pour
+// tous les scénarios) — le paramètre 'scenario' ne matche volontairement
+// aucun fichier individuel pour forcer results-status à tomber sur
+// global_report.json une fois le run terminé.
+async function pollBulkResult(runId){
+  const maxAttempts = 120; // 120 × 5s = 10 min (plusieurs scénarios séquentiels)
 
   for(let i = 0; i < maxAttempts; i++){
     await sleep(5000);
     try{
       const resp = await apiFetch(
-        `${API}/projects/${PROJECT_ID}/results-status?run_id=${runId}&scenario=${scenarioName}`
+        `${API}/projects/${PROJECT_ID}/results-status?run_id=${runId}&scenario=__bulk__`
       );
       let data = JSON.parse(await resp.text());
       if(data.body && typeof data.body === 'string') data = JSON.parse(data.body);
 
       if(data.status === 'DONE'){
-        const sc     = scenarios[idx];
-        const result = data.result || {};
-        const passed = !!result.passed;
-        sc.status = passed ? 'pass' : 'fail';
-        sc.result = result;
+        const globalReport = data.result || {};
+        const perScenario  = globalReport.scenarios || {};
+
+        scenarios.forEach(sc => {
+          const result = perScenario[sc.name];
+          if(result){
+            sc.status = result.passed ? 'pass' : 'fail';
+            sc.result = result;
+          } else {
+            sc.status = 'fail';
+            sc.result = { reason: 'Résultat introuvable dans global_report' };
+          }
+        });
+
         renderScenarioGrid();
         updateGlobalProgress();
-        if(document.getElementById('scenario-detail-view').style.display !== 'none'
-           && activeIdx === idx){
-          renderDetailGeneric(idx);
+        if(document.getElementById('scenario-detail-view').style.display !== 'none'){
+          renderDetailGeneric(activeIdx);
         }
+        addLog(`[BULK] ✅ Terminé — ${globalReport.passed_scenarios||0}/${globalReport.total_scenarios||scenarios.length} PASS`, 'ok');
         return;
 
       } else if(data.status === 'FAILED' || data.status === 'ERROR'){
-        scenarios[idx].status = 'fail';
-        scenarios[idx].result = { reason: data.error || data.reason || 'Échec ECS' };
-        renderScenarioGrid();
-        updateGlobalProgress();
+        scenarios.forEach(sc => { sc.status='fail'; sc.result={reason: data.error || data.reason || 'Échec ECS'}; });
+        renderScenarioGrid(); updateGlobalProgress();
         return;
       }
     }catch(e){
-      console.warn('[POLL]', scenarioName, e.message);
+      console.warn('[POLL BULK]', e.message);
     }
   }
 
-  scenarios[idx].status = 'fail';
-  scenarios[idx].result = { reason: 'Timeout après 5 min' };
+  scenarios.forEach(sc => { sc.status='fail'; sc.result={reason:'Timeout après 10 min'}; });
   renderScenarioGrid();
   updateGlobalProgress();
 }
@@ -2836,7 +2809,7 @@ function launchAllTests(){
     showToast('⚠️ Aucun scénario disponible','error'); return;
   }
   go(4);
-  launchAllTestsParallel();
+  launchAllTestsBulk();
 }
 function clearLog(){ document.getElementById('bench-log-body').innerHTML=''; }
 </script>
