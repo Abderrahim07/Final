@@ -746,6 +746,18 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
                border-radius:2px;transition:width .5s"></div>
         </div>
       </div>
+
+      <!-- Tableau des tests générés + téléchargement -->
+      <div id="ai-tv-preview" style="display:none;margin-top:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:11px;font-weight:600;color:var(--text2)">Tests générés par Claude</div>
+          <button class="btn-secondary" onclick="downloadAIGeneratedTests()" style="padding:6px 14px;font-size:11px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Télécharger en CSV
+          </button>
+        </div>
+        <div class="tv-table-wrap"><table class="tv-table" id="ai-tv-table"><thead></thead><tbody></tbody></table></div>
+      </div>
     </div>
 
     <!-- Scénarios disponibles (visible si upload CSV ou stratégie IA) -->
@@ -2122,6 +2134,7 @@ async function generateTestsWithAI(){
     testVectors = fakeVectors;
     setAiStatus('done', `✅ ${fakeVectors.length} tests générés (simulation)`, 100);
     showToast(`✅ ${fakeVectors.length} tests générés — associés aux scénarios vidéo`,'success');
+    renderAIGeneratedTable();
     renderScenarioList();
     btn.disabled = false;
     return;
@@ -2144,6 +2157,71 @@ async function generateTestsWithAI(){
   }
 }
 
+// ── Tableau générique des tests générés par l'IA ──
+// Colonnes dynamiques : toutes les clés présentes dans testVectors
+// (scenario + signaux d'entrée + expected_*), pas de champs codés en dur.
+function renderAIGeneratedTable(){
+  const preview = document.getElementById('ai-tv-preview');
+  const table   = document.getElementById('ai-tv-table');
+
+  if(!testVectors || testVectors.length === 0){
+    preview.style.display = 'none';
+    return;
+  }
+  preview.style.display = 'block';
+
+  // Union de toutes les clés rencontrées, dans un ordre stable :
+  // scenario en premier, puis les autres par ordre d'apparition
+  const keySet = new Set(['scenario']);
+  testVectors.forEach(tv => Object.keys(tv).forEach(k => {
+    if(!k.startsWith('_')) keySet.add(k);
+  }));
+  const headers = [...keySet];
+
+  table.querySelector('thead').innerHTML =
+    '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+  table.querySelector('tbody').innerHTML = testVectors.map(tv =>
+    '<tr>' + headers.map(h => `<td>${tv[h] ?? '—'}</td>`).join('') + '</tr>'
+  ).join('');
+}
+
+// ── Téléchargement des tests générés au format CSV ──
+function downloadAIGeneratedTests(){
+  if(!testVectors || testVectors.length === 0){
+    showToast('⚠️ Aucun test à télécharger','error');
+    return;
+  }
+
+  const keySet = new Set(['scenario']);
+  testVectors.forEach(tv => Object.keys(tv).forEach(k => {
+    if(!k.startsWith('_')) keySet.add(k);
+  }));
+  const headers = [...keySet];
+
+  const escapeCsv = v => {
+    const s = String(v ?? '');
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+  };
+
+  const lines = [
+    headers.join(','),
+    ...testVectors.map(tv => headers.map(h => escapeCsv(tv[h] ?? '')).join(','))
+  ];
+  const csvContent = lines.join('\n');
+
+  const blob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `tests_generes_${projName || PROJECT_ID || 'projet'}_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast('✅ Fichier CSV téléchargé','success');
+}
+
 async function pollGenerateStatus(jobId){
   const maxAttempts = 144; // 144 × 5s = 12 min (Lambda peut tourner jusqu'à 15 min)
   for(let i=0; i<maxAttempts; i++){
@@ -2161,6 +2239,7 @@ async function pollGenerateStatus(jobId){
         testVectors  = result.test_vectors || [];
         setAiStatus('done', `✅ ${result.total || testVectors.length} tests générés (MC/DC: ${result.mcdc_count||0}, REQ: ${result.req_count||0})`, 100);
         showToast(`✅ ${testVectors.length} tests générés — associés aux scénarios vidéo`,'success');
+        renderAIGeneratedTable();
         renderScenarioList();
         return;
 
