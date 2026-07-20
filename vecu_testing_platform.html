@@ -1863,6 +1863,22 @@ function closeScenarioDetail(){
 
 // Rend uniquement les inputs/outputs réellement présents dans le vecteur
 // de test du testeur — plus de champs LPA codés en dur.
+// Comparaison souple attendu/obtenu — numérique d'abord (0 == 0.0 == "0"),
+// puis texte normalisé pour les booléens ("true"/"1", "false"/"0").
+function valuesMatch(exp, act){
+  if(act === null || act === undefined) return false;
+  const expNum = parseFloat(exp), actNum = parseFloat(act);
+  if(!isNaN(expNum) && !isNaN(actNum) && String(exp).trim() !== '' && String(act).trim() !== ''){
+    return expNum === actNum;
+  }
+  const boolEquiv = {true:'1', false:'0'};
+  let expNorm = String(exp).trim().toLowerCase();
+  let actNorm = String(act).trim().toLowerCase();
+  expNorm = boolEquiv[expNorm] ?? expNorm;
+  actNorm = boolEquiv[actNorm] ?? actNorm;
+  return expNorm === actNorm;
+}
+
 function renderDetailGeneric(idx){
   const sc = scenarios[idx];
   const tv = testVectors.find(v => v.scenario === sc.name) || sc.test_vector || testVectors[idx] || {};
@@ -1905,7 +1921,7 @@ function renderDetailGeneric(idx){
           </div>`;
       }
 
-      const match = String(exp).toLowerCase() === String(act).toLowerCase();
+      const match = valuesMatch(exp, act);
       const icon  = match ? '✓' : '✗';
       const color = match ? 'var(--green)' : 'var(--red)';
       return `
