@@ -629,27 +629,6 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </div>
     </div>
 
-    <!-- Ligne 2 : Vidéos de simulation -->
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>Vidéos de simulation (Blender)</div>
-        <div class="card-sub">Chaque vidéo = un scénario de test indépendant — tu pourras les lancer séparément</div>
-      </div>
-
-      <div class="upload-zone" style="padding:20px" onclick="document.getElementById('input-videos').click()">
-        <input type="file" id="input-videos" accept=".mp4,.avi,.mov,.mkv,.webm" multiple style="display:none" onchange="uploadVideos(this)"/>
-        <div class="upload-icon" style="background:rgba(255,181,71,.08)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div>
-        <p>Dépose tes vidéos Blender ici</p>
-        <span>.mp4 · .avi · .mov — Plusieurs fichiers acceptés</span>
-      </div>
-
-      <!-- Liste des vidéos uploadées -->
-      <div id="video-list-container" style="display:none;margin-top:14px">
-        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Scénarios ajoutés</div>
-        <div class="video-list" id="video-list"></div>
-      </div>
-    </div>
-
     <div class="btn-row">
       <button class="btn-secondary" onclick="go(0)">Retour</button>
       <button class="btn-primary" onclick="go(2)">Suivant <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
@@ -764,9 +743,37 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="card" id="scenarios-list-card" style="display:none">
       <div class="card-head">
         <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>Scénarios à tester</div>
-        <div class="card-sub" id="sc-count-sub">Aucun scénario — retourne à l'étape 2 pour uploader des vidéos</div>
+        <div class="card-sub" id="sc-count-sub">Aucun scénario — importe un CSV ou génère des tests par IA</div>
       </div>
       <div class="video-list" id="scenario-list-s3"></div>
+    </div>
+
+    <!-- Génération des vidéos par IA (Bedrock Nova Reel) — une vidéo par scénario -->
+    <div class="card" id="video-gen-card" style="display:none">
+      <div class="card-head" style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div class="card-title">🎬 Génération des vidéos</div>
+          <div class="card-sub">Une vidéo générée par IA pour chaque scénario ci-dessus, nommée automatiquement pour correspondre</div>
+        </div>
+        <button class="btn-launch" id="btn-generate-videos" onclick="generateVideosForScenarios()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          Générer les vidéos
+        </button>
+      </div>
+
+      <div id="video-gen-status-bar" style="display:none;margin-top:10px;padding:12px 16px;
+           background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
+           font-family:var(--mono);font-size:11px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div id="video-gen-dot" style="width:8px;height:8px;border-radius:50%;background:var(--amber);animation:pulse 1s infinite"></div>
+            <span id="video-gen-status-text" style="color:var(--text2)">En attente...</span>
+          </div>
+        </div>
+        <div style="margin-top:8px;height:3px;background:var(--border2);border-radius:2px;overflow:hidden">
+          <div id="video-gen-progress-fill" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--amber));border-radius:2px;transition:width .5s"></div>
+        </div>
+      </div>
     </div>
 
     <div class="btn-row">
@@ -1328,31 +1335,6 @@ async function uploadFile(input,type){
 }
 
 // ── Upload vidéos → scénarios
-async function uploadVideos(input){
-  const files=Array.from(input.files); if(!files.length) return;
-  if(!PROJECT_ID){ showToast('⚠️ Crée d\'abord un projet','error'); return; }
-  for(const file of files){
-    videoFiles[file.name]=file;
-    const sc={name:file.name.replace(/\.[^.]+$/,''),filename:file.name,file,status:'uploaded',signals:null,testVector:null};
-    if(!DEMO){
-      showLoader(`Upload ${file.name}...`);
-      try{
-        const ur=await apiFetch(`${API}/projects/${PROJECT_ID}/upload-url?filename=${encodeURIComponent(file.name)}`);
-        let ud=JSON.parse(await ur.text());
-        if(ud.body&&typeof ud.body==='string') ud=JSON.parse(ud.body);
-        const put=await fetch(ud.upload_url,{method:'PUT',body:file,headers:{'Content-Type':'application/octet-stream'}});
-        if(!put.ok) throw new Error(`S3 PUT ${put.status}`);
-        sc.s3key=ud.key;
-      }catch(e){ sc.status='error'; }
-      finally{ hideLoader(); }
-    }
-    scenarios.push(sc);
-    await saveScenarios();
-  }
-  renderVideoList();
-  showToast(`✅ ${files.length} vidéo(s) ajoutée(s)`,'success');
-}
-
 // Nouvelle fonction
 async function saveScenarios(){
   if(!PROJECT_ID || DEMO) return;
@@ -1396,7 +1378,7 @@ async function refreshScenarioListS3(){
 
   // Pas en mémoire → charger depuis S3
   if(!PROJECT_ID || DEMO){
-    sub.textContent = 'Aucun scénario — retourne à l\'étape 2 pour uploader des vidéos';
+    sub.textContent = 'Aucun scénario — importe un CSV ou génère des tests par IA';
     return;
   }
 
@@ -1408,7 +1390,7 @@ async function refreshScenarioListS3(){
 
     const saved = data.scenarios || [];
     if(saved.length === 0){
-      sub.textContent = 'Aucun scénario — retourne à l\'étape 2 pour uploader des vidéos';
+      sub.textContent = 'Aucun scénario — importe un CSV ou génère des tests par IA';
       return;
     }
 
@@ -1467,12 +1449,138 @@ function renderVideoList(){
     }
   });
 }
+// Construit scenarios[] à partir des noms uniques présents dans testVectors
+// (remplace l'ancienne construction via upload vidéo). Chaque scénario
+// n'a pas encore de vidéo tant que la génération n'a pas été lancée.
+function buildScenariosFromTestVectors(){
+  const uniqueNames = [...new Set(testVectors.map(tv => tv.scenario).filter(Boolean))];
+  scenarios = uniqueNames.map(name => {
+    const existing = scenarios.find(sc => sc.name === name);
+    return existing || {
+      name, filename: `${name}.mp4`, file: null,
+      status: 'no_video', s3key: null
+    };
+  });
+  document.getElementById('video-gen-card').style.display = scenarios.length ? 'block' : 'none';
+}
+
+// ══════════════════════════════════════════════
+// GÉNÉRATION DES VIDÉOS PAR IA (Bedrock Nova Reel)
+// ══════════════════════════════════════════════
+function setVideoGenStatus(type, message, progress){
+  const bar  = document.getElementById('video-gen-status-bar');
+  const dot  = document.getElementById('video-gen-dot');
+  const text = document.getElementById('video-gen-status-text');
+  const fill = document.getElementById('video-gen-progress-fill');
+  bar.style.display = 'block';
+  text.textContent  = message;
+  fill.style.width  = progress+'%';
+  const colors = { running:'var(--amber)', done:'var(--green)', failed:'var(--red)' };
+  dot.style.background = colors[type] || 'var(--text3)';
+  dot.style.animation   = type==='running' ? 'pulse 1s infinite' : 'none';
+  text.style.color      = colors[type] || 'var(--text2)';
+}
+
+async function generateVideosForScenarios(){
+  if(!PROJECT_ID && !DEMO){ showToast('⚠️ Crée d\'abord un projet','error'); return; }
+  if(scenarios.length === 0){ showToast('⚠️ Aucun scénario disponible','error'); return; }
+
+  const btn = document.getElementById('btn-generate-videos');
+  btn.disabled = true; btn.style.opacity = '.5';
+  setVideoGenStatus('running', `Démarrage — ${scenarios.length} scénario(s)...`, 5);
+
+  if(DEMO){
+    for(let i=0;i<scenarios.length;i++){
+      await sleep(600);
+      scenarios[i].status = 'video_ready';
+      setVideoGenStatus('running', `${i+1}/${scenarios.length} vidéo(s) générée(s)...`, 10+Math.round(80*(i+1)/scenarios.length));
+    }
+    setVideoGenStatus('done', `✅ ${scenarios.length} vidéo(s) générée(s) (simulation)`, 100);
+    showToast('✅ Vidéos générées (simulation)','success');
+    renderScenarioList();
+    btn.disabled = false; btn.style.opacity = '1';
+    return;
+  }
+
+  const scenariosPayload = scenarios.map(sc => ({
+    name: sc.name,
+    test_vector: testVectors.find(v => v.scenario === sc.name) || {}
+  }));
+
+  try{
+    const resp = await apiFetch(`${API}/projects/${PROJECT_ID}/generate-videos`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ scenarios: scenariosPayload })
+    });
+    let data = JSON.parse(await resp.text());
+    if(data.body && typeof data.body==='string') data = JSON.parse(data.body);
+
+    if(!resp.ok || !data.job_id){
+      setVideoGenStatus('failed', '❌ '+(data.error||`Erreur ${resp.status}`), 0);
+      btn.disabled = false; btn.style.opacity = '1';
+      return;
+    }
+
+    await pollVideoGenStatus(data.job_id);
+
+  }catch(e){
+    setVideoGenStatus('failed', '❌ '+e.message, 0);
+  }finally{
+    btn.disabled = false; btn.style.opacity = '1';
+  }
+}
+
+async function pollVideoGenStatus(jobId){
+  const maxAttempts = 144; // 144 × 5s = 12 min
+
+  for(let i=0;i<maxAttempts;i++){
+    await sleep(5000);
+    try{
+      const resp = await apiFetch(`${API}/projects/${PROJECT_ID}/generate-videos-status?job_id=${jobId}`);
+      let data = JSON.parse(await resp.text());
+      if(data.body && typeof data.body==='string') data = JSON.parse(data.body);
+
+      if(data.status === 'RUNNING'){
+        setVideoGenStatus('running', data.message || 'En cours...', data.progress || 50);
+
+      } else if(data.status === 'DONE'){
+        const result = data.result || {};
+        const manifest = result.manifest || {};
+
+        scenarios.forEach(sc => {
+          const entry = manifest[sc.name];
+          if(entry && entry.status === 'Completed' && entry.final_s3_key){
+            sc.status = 'video_ready';
+            sc.s3key  = entry.final_s3_key;
+          } else {
+            sc.status = 'video_failed';
+          }
+        });
+
+        setVideoGenStatus('done', `✅ ${result.completed||0}/${result.total||scenarios.length} vidéos générées`, 100);
+        showToast(`✅ ${result.completed||0} vidéo(s) générée(s)`,'success');
+        renderScenarioList();
+        return;
+
+      } else if(data.status === 'FAILED'){
+        setVideoGenStatus('failed', '❌ '+(data.message||'Échec de la génération'), 0);
+        return;
+      }
+    }catch(e){
+      console.warn('[POLL VIDEO GEN]', e.message);
+    }
+  }
+
+  setVideoGenStatus('failed', '⏱ Timeout après 12 min', 0);
+}
+
 function renderScenarioList(){
   const list = document.getElementById('scenario-list-s3');
   const sub  = document.getElementById('sc-count-sub');
   list.innerHTML = '';
   if(scenarios.length === 0){
-    sub.textContent = 'Aucun scénario — retourne à l\'étape 2';
+    sub.textContent = 'Aucun scénario — importe un CSV ou génère des tests par IA';
     return;
   }
   sub.textContent = `${scenarios.length} scénario${scenarios.length>1?'s':''} prêt${scenarios.length>1?'s':''}`;
@@ -1482,7 +1590,9 @@ function renderScenarioList(){
     const statusTag = sc.status==='pass'?'<span class="tag tag-green">PASS</span>'
       :sc.status==='fail'?'<span class="tag tag-red">FAIL</span>'
       :sc.status==='running'?'<span class="tag tag-cyan">EN COURS</span>'
-      :'<span class="tag tag-gray">EN ATTENTE</span>';
+      :sc.status==='video_ready'?'<span class="tag tag-green">VIDÉO OK</span>'
+      :sc.status==='video_failed'?'<span class="tag tag-red">VIDÉO ÉCHEC</span>'
+      :'<span class="tag tag-gray">PAS DE VIDÉO</span>';
     const hasVector = testVectors.find(v => v.scenario === sc.name) || sc.test_vector || testVectors[i];
     item.innerHTML = `
       <div class="video-thumb-mini" id="s3thumb-${i}">
@@ -1495,7 +1605,7 @@ function renderScenarioList(){
       </div>
       <div class="video-item-info">
         <div class="video-item-name">SC ${i+1} — ${sc.name}</div>
-        <div class="video-item-meta">${sc.filename} · ${hasVector?'Vecteur lié ✓':'Pas de vecteur'}</div>
+        <div class="video-item-meta">${hasVector?'Vecteur lié ✓':'Pas de vecteur'} · ${sc.s3key?'Vidéo prête':'Vidéo à générer'}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         ${statusTag}
@@ -1505,6 +1615,7 @@ function renderScenarioList(){
           ▶ Ouvrir
         </button>
       </div>
+
     `;
     list.appendChild(item);
     if(sc.file){
@@ -1756,7 +1867,19 @@ function renderDetailGeneric(idx){
     outputsEl.innerHTML = `<div style="font-size:11px;color:var(--text3)">${sc.status==='running'?'⏳ En attente des résultats...':"Aucun résultat pour l'instant"}</div>`;
   } else {
     outputsEl.innerHTML = names.map(name => {
+      const hasExpected = Object.prototype.hasOwnProperty.call(expected, name);
       const exp = expected[name], act = actual[name];
+
+      if(!hasExpected){
+        // Aucune attente définie pour ce signal — valeur observée
+        // uniquement, pas un échec, ne pas afficher ✗
+        return `
+          <div style="display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:11px">
+            <span style="color:var(--text2)">${name}</span>
+            <span style="color:var(--text3)">— non vérifié — obtenu=${act ?? '—'}</span>
+          </div>`;
+      }
+
       const match = String(exp).toLowerCase() === String(act).toLowerCase();
       const icon  = match ? '✓' : '✗';
       const color = match ? 'var(--green)' : 'var(--red)';
@@ -1766,6 +1889,13 @@ function renderDetailGeneric(idx){
           <span style="color:${color};font-weight:700">${icon} attendu=${exp ?? '—'} obtenu=${act ?? '—'}</span>
         </div>`;
     }).join('');
+
+    if(Object.keys(expected).length === 0){
+      outputsEl.innerHTML = `<div style="font-size:10px;color:var(--amber);margin-bottom:8px;padding:8px;
+        background:rgba(255,181,71,.08);border:1px solid rgba(255,181,71,.2);border-radius:6px">
+        ⚠️ Ce vecteur de test ne contient aucun signal "expected_*" — rien n'a été réellement vérifié,
+        le verdict PASS est automatique par absence de critère.</div>` + outputsEl.innerHTML;
+    }
   }
 
   document.getElementById('detail-reason').textContent =
@@ -1818,6 +1948,7 @@ function loadTestFile(input){
     const headers=lines[0].split(',');
     testVectors=lines.slice(1).map(l=>{ const v=l.split(','); return Object.fromEntries(headers.map((h,i)=>[h.trim(),v[i]?.trim()])); });
     renderTVPreview(headers,testVectors);
+    buildScenariosFromTestVectors();
     showToast(`✅ ${testVectors.length} vecteurs chargés`,'success');
   };
   reader.readAsText(file);
@@ -2132,8 +2263,9 @@ async function generateTestsWithAI(){
       {scenario:'TC-ST01-001', vehicle_speed:'12', system_ct:'1', expected_System_Active:'1', expected_Warning_Left:'0'}
     ];
     testVectors = fakeVectors;
+    buildScenariosFromTestVectors();
     setAiStatus('done', `✅ ${fakeVectors.length} tests générés (simulation)`, 100);
-    showToast(`✅ ${fakeVectors.length} tests générés — associés aux scénarios vidéo`,'success');
+    showToast(`✅ ${fakeVectors.length} tests générés`,'success');
     renderAIGeneratedTable();
     renderScenarioList();
     btn.disabled = false;
@@ -2237,8 +2369,9 @@ async function pollGenerateStatus(jobId){
       } else if(data.status === 'DONE'){
         const result = data.result || {};
         testVectors  = result.test_vectors || [];
+        buildScenariosFromTestVectors();
         setAiStatus('done', `✅ ${result.total || testVectors.length} tests générés (MC/DC: ${result.mcdc_count||0}, REQ: ${result.req_count||0})`, 100);
-        showToast(`✅ ${testVectors.length} tests générés — associés aux scénarios vidéo`,'success');
+        showToast(`✅ ${testVectors.length} tests générés`,'success');
         renderAIGeneratedTable();
         renderScenarioList();
         return;
