@@ -1624,16 +1624,41 @@ function renderScenarioList(){
 
     `;
     list.appendChild(item);
-    if(sc.file){
-      const v = document.createElement('video');
-      v.src = URL.createObjectURL(sc.file); v.muted=true; v.loop=true;
-      v.style = 'width:100%;height:100%;object-fit:cover';
-      const thumb = document.getElementById(`s3thumb-${i}`);
-      if(thumb){ thumb.innerHTML=''; thumb.appendChild(v); }
-      item.addEventListener('mouseenter',()=>v.play());
-      item.addEventListener('mouseleave',()=>v.pause());
-    }
+    loadThumbVideo(sc, `s3thumb-${i}`, item);
   });
+}
+
+// ── Charge une miniature vidéo, depuis un fichier local (sc.file) ou
+// depuis S3 via URL presignée (sc.s3key) — fonctionne pour les vidéos
+// générées par IA comme pour d'anciens uploads locaux.
+function loadThumbVideo(sc, thumbId, hoverEl){
+  const thumb = document.getElementById(thumbId);
+  if(!thumb) return;
+
+  function attachVideo(src){
+    const v = document.createElement('video');
+    v.src = src; v.muted = true; v.loop = true;
+    v.style = 'width:100%;height:100%;object-fit:cover';
+    thumb.innerHTML = '';
+    thumb.appendChild(v);
+    if(hoverEl){
+      hoverEl.addEventListener('mouseenter', () => v.play());
+      hoverEl.addEventListener('mouseleave', () => v.pause());
+    }
+  }
+
+  if(sc.file){
+    attachVideo(URL.createObjectURL(sc.file));
+  } else if(sc.s3key && !DEMO && PROJECT_ID){
+    (async () => {
+      try{
+        const resp = await apiFetch(`${API}/projects/${PROJECT_ID}/read-url?key=${encodeURIComponent(sc.s3key)}`);
+        let d = JSON.parse(await resp.text());
+        if(d.body && typeof d.body === 'string') d = JSON.parse(d.body);
+        if(d.read_url) attachVideo(d.read_url);
+      }catch(e){ console.warn('[THUMB]', sc.name, e.message); }
+    })();
+  }
 }
 // ══════════════════════════════════════════════
 // TEST BENCH PARALLÈLE — générique (basé sur test_vector/expected/actual)
@@ -1662,13 +1687,7 @@ function renderScenarioGrid(){
   }).join('');
 
   scenarios.forEach((sc,i)=>{
-    if(sc.file){
-      const v = document.createElement('video');
-      v.src = URL.createObjectURL(sc.file); v.muted=true; v.loop=true;
-      v.style = 'width:100%;height:100%;object-fit:cover';
-      const thumb = document.getElementById(`grid-thumb-${i}`);
-      if(thumb){ thumb.innerHTML=''; thumb.appendChild(v); }
-    }
+    loadThumbVideo(sc, `grid-thumb-${i}`, null);
   });
 }
 
