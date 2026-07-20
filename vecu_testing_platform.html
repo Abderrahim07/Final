@@ -698,8 +698,13 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="card" id="ai-generate-card" style="display:none">
       <div class="card-head">
         <div class="card-title">🤖 Génération par IA</div>
-        <div class="card-sub">Claude (AWS Bedrock) analyse vos requirements et signaux I/O pour générer MC/DC + tests BVA</div>
+        <div class="card-sub">Claude (AWS Bedrock) génère un jeu de tests MC/DC minimal (N+1 tests) depuis vos signaux I/O</div>
       </div>
+
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer;font-size:11px;color:var(--text2)">
+        <input type="checkbox" id="ai-include-req-based" style="accent-color:var(--accent)"/>
+        Inclure aussi la génération BVA basée sur les requirements (plus de tests générés — chaque test déclenchera une vidéo, coûteux)
+      </label>
 
       <button class="btn-primary" id="btn-ai-generate" onclick="generateTestsWithAI()"
         style="width:100%;justify-content:center">
@@ -1532,7 +1537,8 @@ async function generateVideosForScenarios(){
 }
 
 async function pollVideoGenStatus(jobId){
-  const maxAttempts = 144; // 144 × 5s = 12 min
+  const maxAttempts = 228; // 228 × 5s = 19 min — dépasse la limite Lambda (15 min)
+                            // avec marge, pour ne jamais abandonner avant le backend
 
   for(let i=0;i<maxAttempts;i++){
     await sleep(5000);
@@ -1572,7 +1578,7 @@ async function pollVideoGenStatus(jobId){
     }
   }
 
-  setVideoGenStatus('failed', '⏱ Timeout après 12 min', 0);
+  setVideoGenStatus('failed', '⏱ Timeout après 19 min', 0);
 }
 
 function renderScenarioList(){
@@ -2273,7 +2279,12 @@ async function generateTestsWithAI(){
   }
 
   try{
-    const resp = await apiFetch(`${API}/projects/${PROJECT_ID}/generate-tests`, { method:'POST' });
+    const includeReqBased = document.getElementById('ai-include-req-based').checked;
+    const resp = await apiFetch(`${API}/projects/${PROJECT_ID}/generate-tests`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ include_req_based: includeReqBased })
+    });
     let data = JSON.parse(await resp.text());
     if(data.body && typeof data.body==='string') data = JSON.parse(data.body);
     if(!data.job_id) throw new Error('job_id manquant');
