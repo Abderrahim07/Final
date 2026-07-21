@@ -698,13 +698,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="card" id="ai-generate-card" style="display:none">
       <div class="card-head">
         <div class="card-title">🤖 Génération par IA</div>
-        <div class="card-sub">Claude (AWS Bedrock) génère un jeu de tests MC/DC minimal (N+1 tests) depuis vos signaux I/O</div>
+        <div class="card-sub">Claude (AWS Bedrock) génère un jeu de tests MC/DC minimal (N+1) pour chaque exigence de votre fichier requirements — nécessite des blocs "REQ-xx" dans le fichier uploadé à l'étape 2</div>
       </div>
-
-      <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer;font-size:11px;color:var(--text2)">
-        <input type="checkbox" id="ai-include-req-based" style="accent-color:var(--accent)"/>
-        Inclure aussi la génération BVA basée sur les requirements (plus de tests générés — chaque test déclenchera une vidéo, coûteux)
-      </label>
 
       <button class="btn-primary" id="btn-ai-generate" onclick="generateTestsWithAI()"
         style="width:100%;justify-content:center">
@@ -1615,7 +1610,7 @@ function renderScenarioList(){
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         ${statusTag}
-        <button onclick="openScenarioModal(${i})"
+        <button onclick="go(4);openScenarioDetail(${i})"
           style="padding:5px 12px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);
                  border-radius:4px;font-family:var(--mono);font-size:10px;color:var(--accent);cursor:pointer">
           ▶ Ouvrir
@@ -2314,11 +2309,10 @@ async function generateTestsWithAI(){
   }
 
   try{
-    const includeReqBased = document.getElementById('ai-include-req-based').checked;
     const resp = await apiFetch(`${API}/projects/${PROJECT_ID}/generate-tests`, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ include_req_based: includeReqBased })
+      body: JSON.stringify({})
     });
     let data = JSON.parse(await resp.text());
     if(data.body && typeof data.body==='string') data = JSON.parse(data.body);
@@ -2416,7 +2410,7 @@ async function pollGenerateStatus(jobId){
         const result = data.result || {};
         testVectors  = result.test_vectors || [];
         buildScenariosFromTestVectors();
-        setAiStatus('done', `✅ ${result.total || testVectors.length} tests générés (MC/DC: ${result.mcdc_count||0}, REQ: ${result.req_count||0})`, 100);
+        setAiStatus('done', `✅ ${result.total || testVectors.length} tests générés (${result.requirements_count||0} exigences, ${result.units_count||0} unités${result.untestable_count?', '+result.untestable_count+' non testable(s)':''})`, 100);
         showToast(`✅ ${testVectors.length} tests générés`,'success');
         renderAIGeneratedTable();
         renderScenarioList();
