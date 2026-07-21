@@ -906,7 +906,13 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div style="display:flex;flex-direction:column;gap:12px">
 
           <div class="card" style="margin:0">
+            <div class="card-title" style="font-size:11px">📝 Description du test</div>
+            <div id="detail-description" style="margin-top:6px;font-size:11px;color:var(--text2);line-height:1.5">—</div>
+          </div>
+
+          <div class="card" style="margin:0">
             <div class="card-title" style="font-size:11px">🎛 Vecteur de test (entrées)</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:4px">Les signaux image (R/G/B) ne sont pas listés ici — ils sont extraits en direct de la vidéo, frame par frame, pas fixés par le vecteur de test</div>
             <div id="detail-inputs" style="margin-top:8px;display:flex;flex-direction:column;gap:6px"></div>
           </div>
 
@@ -919,6 +925,19 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
             <div class="card-title" style="font-size:11px">Verdict</div>
             <div id="detail-reason" style="margin-top:6px;font-size:11px;color:var(--text2);font-family:var(--mono)">—</div>
           </div>
+        </div>
+      </div>
+
+      <!-- VERDICT PAR FRAME -->
+      <div class="card" id="detail-frames-card" style="display:none;margin-top:14px">
+        <div class="card-head" style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div class="card-title" style="font-size:11px">🎞 Verdict par frame</div>
+            <div class="card-sub" id="detail-frames-summary">—</div>
+          </div>
+        </div>
+        <div style="max-height:320px;overflow-y:auto;margin-top:10px" id="detail-frames-table-wrap">
+          <table class="tv-table" id="detail-frames-table"><thead></thead><tbody></tbody></table>
         </div>
       </div>
 
@@ -1885,9 +1904,16 @@ function renderDetailGeneric(idx){
   else if(sc.status === 'running'){ badge.className='tag tag-cyan'; badge.textContent='EN COURS'; }
   else { badge.className='tag tag-gray'; badge.textContent='EN ATTENTE'; }
 
+  // Description du TC — visible dès l'ouverture, pour vérifier que la
+  // vidéo correspond bien à l'intention du test pendant l'exécution
+  const description = result.description || tv._description || tv.description || '';
+  document.getElementById('detail-description').textContent =
+    description || 'Aucune description disponible pour ce test';
+
   // Inputs — tout ce qui n'est pas expected_* ni 'scenario'
   const inputsEl = document.getElementById('detail-inputs');
-  const inputEntries = Object.entries(tv).filter(([k]) => k!=='scenario' && !k.startsWith('expected_') && !k.startsWith('_'));
+  const IMAGE_DERIVED = new Set(['image_R','image_G','image_B']);
+  const inputEntries = Object.entries(tv).filter(([k]) => k!=='scenario' && !k.startsWith('expected_') && !k.startsWith('_') && !IMAGE_DERIVED.has(k));
   inputsEl.innerHTML = inputEntries.length ? inputEntries.map(([k,v]) => `
     <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px">
       <span style="color:var(--text2)">${k}</span><span style="color:var(--accent);font-weight:700">${v}</span>
@@ -1940,6 +1966,45 @@ function renderDetailGeneric(idx){
   if(sc.status==='running') addLog('[STATUS] En cours d\'exécution...', 'info');
   else if(sc.status==='pass') addLog('[RESULT] ✅ PASS — '+(result.reason||''), 'ok');
   else if(sc.status==='fail') addLog('[RESULT] ❌ FAIL — '+(result.reason||''), 'err');
+
+  renderFramesDetail(result);
+}
+
+// ── Verdict par frame — table détaillée (frames_detail du backend) ──
+function renderFramesDetail(result){
+  const card  = document.getElementById('detail-frames-card');
+  const frames = result.frames_detail || [];
+
+  if(frames.length === 0){
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = 'block';
+
+  const passedCount = frames.filter(f => f.match).length;
+  document.getElementById('detail-frames-summary').textContent =
+    `${passedCount}/${frames.length} frames conformes`;
+
+  // Colonnes = union des signaux de sortie présents
+  const signalSet = new Set();
+  frames.forEach(f => Object.keys(f.outputs || {}).forEach(k => signalSet.add(k)));
+  const signals = [...signalSet];
+
+  const table = document.getElementById('detail-frames-table');
+  table.querySelector('thead').innerHTML =
+    '<tr><th>Frame</th><th>Verdict</th>' + signals.map(s => `<th>${s}</th>`).join('') + '</tr>';
+
+  table.querySelector('tbody').innerHTML = frames.map(f => {
+    const verdictCell = f.match
+      ? '<td style="color:var(--green)">✓</td>'
+      : `<td style="color:var(--red)" title="${(f.mismatches||[]).join(', ')}">✗</td>`;
+    const cells = signals.map(s => {
+      const val = f.outputs?.[s];
+      const isMismatch = (f.mismatches || []).includes(s);
+      return `<td style="${isMismatch ? 'color:var(--red);font-weight:700' : ''}">${val ?? '—'}</td>`;
+    }).join('');
+    return `<tr${f.match ? '' : ' style="background:rgba(255,92,92,.05)"'}><td>${f.frame}</td>${verdictCell}${cells}</tr>`;
+  }).join('');
 }
 
 function renderTVPreview(headers,rows){
