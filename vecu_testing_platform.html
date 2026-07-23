@@ -127,6 +127,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 /* Vecteurs de test table */
 .tv-table-wrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--border);margin-top:12px}
 .tv-table{width:100%;border-collapse:collapse;font-size:11px}
+.frame-row:hover{background:rgba(0,212,255,.06)}
+.frame-row-selected{background:rgba(0,212,255,.12) !important;box-shadow:inset 2px 0 0 var(--accent)}
 .tv-table thead th{background:var(--bg3);padding:9px 12px;text-align:left;font-family:var(--mono);font-size:10px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border)}
 .tv-table tbody td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text1);vertical-align:middle;font-family:var(--mono);font-size:11px}
 .tv-table tbody tr:last-child td{border-bottom:none}
@@ -1190,6 +1192,9 @@ async function apiFetch(url, options={}){
 let PROJECT_ID = null, projName = '';
 let scenarios  = [];   // [{name, filename, file(File), status, signals, testVector}]
 let activeIdx  = 0;
+let currentDetailExpected = {};      // expected_* du scénario actuellement ouvert
+let currentDetailFramesDetail = [];  // frames_detail du scénario actuellement ouvert
+let currentSelectedFrameIdx = null;  // index de la frame sélectionnée (null = vue globale)
 let videoFiles = {};
 let strategy   = 0;
 let testVectors= [];
@@ -1956,6 +1961,11 @@ function renderDetailGeneric(idx){
   const tv = testVectors.find(v => v.scenario === sc.name) || sc.test_vector || testVectors[idx] || {};
   const result = sc.result || {};
 
+  // Mémorise le contexte courant pour le clic sur une frame
+  currentDetailExpected = result.expected || {};
+  currentDetailFramesDetail = result.frames_detail || [];
+  currentSelectedFrameIdx = null;
+
   const badge = document.getElementById('detail-status-badge');
   if(sc.status === 'pass'){ badge.className='tag tag-green'; badge.textContent='PASS'; }
   else if(sc.status === 'fail'){ badge.className='tag tag-red'; badge.textContent='FAIL'; }
@@ -1977,46 +1987,9 @@ function renderDetailGeneric(idx){
       <span style="color:var(--text2)">${k}</span><span style="color:var(--accent);font-weight:700">${v}</span>
     </div>`).join('') : `<div style="font-size:11px;color:var(--text3)">Aucun signal d'entrée dans ce vecteur</div>`;
 
-  // Outputs — expected vs actual, générique
-  const outputsEl = document.getElementById('detail-outputs');
-  const expected  = result.expected || {};
-  const actual    = result.actual   || {};
-  const names     = [...new Set([...Object.keys(expected), ...Object.keys(actual)])];
-
-  if(names.length === 0){
-    outputsEl.innerHTML = `<div style="font-size:11px;color:var(--text3)">${sc.status==='running'?'⏳ En attente des résultats...':"Aucun résultat pour l'instant"}</div>`;
-  } else {
-    outputsEl.innerHTML = names.map(name => {
-      const hasExpected = Object.prototype.hasOwnProperty.call(expected, name);
-      const exp = expected[name], act = actual[name];
-
-      if(!hasExpected){
-        // Aucune attente définie pour ce signal — valeur observée
-        // uniquement, pas un échec, ne pas afficher ✗
-        return `
-          <div style="display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:11px">
-            <span style="color:var(--text2)">${name}</span>
-            <span style="color:var(--text3)">— non vérifié — obtenu=${act ?? '—'}</span>
-          </div>`;
-      }
-
-      const match = valuesMatch(exp, act);
-      const icon  = match ? '✓' : '✗';
-      const color = match ? 'var(--green)' : 'var(--red)';
-      return `
-        <div style="display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:11px">
-          <span style="color:var(--text2)">${name}</span>
-          <span style="color:${color};font-weight:700">${icon} attendu=${exp ?? '—'} obtenu=${act ?? '—'}</span>
-        </div>`;
-    }).join('');
-
-    if(Object.keys(expected).length === 0){
-      outputsEl.innerHTML = `<div style="font-size:10px;color:var(--amber);margin-bottom:8px;padding:8px;
-        background:rgba(255,181,71,.08);border:1px solid rgba(255,181,71,.2);border-radius:6px">
-        ⚠️ Ce vecteur de test ne contient aucun signal "expected_*" — rien n'a été réellement vérifié,
-        le verdict PASS est automatique par absence de critère.</div>` + outputsEl.innerHTML;
-    }
-  }
+  // Outputs — uniquement les sorties que CE test vérifie réellement
+  // (expected_*), pas la totalité des sorties du firmware.
+  renderOutputsPanel(currentDetailExpected, result.actual || {}, null);
 
   document.getElementById('detail-reason').textContent =
     result.reason || (sc.status==='running' ? 'Test en cours...' : 'Pas encore lancé');
@@ -2026,6 +1999,51 @@ function renderDetailGeneric(idx){
   else if(sc.status==='fail') addLog('[RESULT] ❌ FAIL — '+(result.reason||''), 'err');
 
   renderFramesDetail(result);
+}
+
+// ── Panneau "Résultats (sorties)" — réutilisé pour la vue globale
+// (majorité sur toutes les frames) ET pour une frame précise cliquée.
+// N'affiche QUE les signaux que ce test vérifie (expected_*) — plus de
+// bruit avec des sorties non testées par ce TC.
+function renderOutputsPanel(expected, actualSource, frameLabel){
+  const outputsEl = document.getElementById('detail-outputs');
+  const names = Object.keys(expected);
+
+  const header = frameLabel
+    ? `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--border)">
+         <span style="font-size:10px;color:var(--accent);font-weight:700">📍 ${frameLabel}</span>
+         <button onclick="resetToGlobalView()" style="font-size:9px;color:var(--text3);background:none;border:none;cursor:pointer;text-decoration:underline">Vue globale</button>
+       </div>`
+    : '';
+
+  if(names.length === 0){
+    outputsEl.innerHTML = header + `<div style="font-size:10px;color:var(--amber);padding:8px;
+      background:rgba(255,181,71,.08);border:1px solid rgba(255,181,71,.2);border-radius:6px">
+      ⚠️ Ce vecteur de test ne contient aucun signal "expected_*" — rien n'a été réellement vérifié.</div>`;
+    return;
+  }
+
+  outputsEl.innerHTML = header + names.map(name => {
+    const exp = expected[name], act = actualSource[name];
+    const match = valuesMatch(exp, act);
+    const icon  = match ? '✓' : '✗';
+    const color = match ? 'var(--green)' : 'var(--red)';
+    return `
+      <div style="display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:11px">
+        <span style="color:var(--text2)">${name}</span>
+        <span style="color:${color};font-weight:700">${icon} attendu=${exp ?? '—'} obtenu=${act ?? '—'}</span>
+      </div>`;
+  }).join('');
+}
+
+// Revenir à la vue agrégée (majorité sur toutes les frames) après avoir cliqué une frame
+function resetToGlobalView(){
+  currentSelectedFrameIdx = null;
+  const idx = activeIdx;
+  const sc = scenarios[idx];
+  const result = sc.result || {};
+  renderOutputsPanel(currentDetailExpected, result.actual || {}, null);
+  document.querySelectorAll('#detail-frames-table tbody tr').forEach(tr => tr.classList.remove('frame-row-selected'));
 }
 
 // ── Verdict par frame — table détaillée (frames_detail du backend) ──
@@ -2052,7 +2070,7 @@ function renderFramesDetail(result){
   table.querySelector('thead').innerHTML =
     '<tr><th>Frame</th><th>Verdict</th>' + signals.map(s => `<th>${s}</th>`).join('') + '</tr>';
 
-  table.querySelector('tbody').innerHTML = frames.map(f => {
+  table.querySelector('tbody').innerHTML = frames.map((f, i) => {
     const verdictCell = f.match
       ? '<td style="color:var(--green)">✓</td>'
       : `<td style="color:var(--red)" title="${(f.mismatches||[]).join(', ')}">✗</td>`;
@@ -2061,8 +2079,28 @@ function renderFramesDetail(result){
       const isMismatch = (f.mismatches || []).includes(s);
       return `<td style="${isMismatch ? 'color:var(--red);font-weight:700' : ''}">${val ?? '—'}</td>`;
     }).join('');
-    return `<tr${f.match ? '' : ' style="background:rgba(255,92,92,.05)"'}><td>${f.frame}</td>${verdictCell}${cells}</tr>`;
+    const selected = i === currentSelectedFrameIdx ? ' frame-row-selected' : '';
+    const bg = f.match ? '' : ' style="background:rgba(255,92,92,.05)"';
+    return `<tr class="frame-row${selected}"${bg} onclick="showFrameInResultsPanel(${i})" style="cursor:pointer">
+      <td>${f.frame}</td>${verdictCell}${cells}</tr>`;
   }).join('');
+}
+
+// Clic sur une ligne de frame → affiche attendu/obtenu de CETTE frame
+// précise dans le panneau "Résultats" à droite, au lieu de la valeur
+// majoritaire agrégée sur toute la vidéo.
+function showFrameInResultsPanel(frameIdx){
+  currentSelectedFrameIdx = frameIdx;
+  const frame = currentDetailFramesDetail[frameIdx];
+  if(!frame) return;
+
+  renderOutputsPanel(currentDetailExpected, frame.outputs || {}, `Frame ${frame.frame}`);
+
+  document.querySelectorAll('#detail-frames-table tbody tr').forEach((tr, i) => {
+    tr.classList.toggle('frame-row-selected', i === frameIdx);
+  });
+
+  document.getElementById('detail-outputs').scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
 function renderTVPreview(headers,rows){
