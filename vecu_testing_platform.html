@@ -842,6 +842,12 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <!-- ═══ SCREEN 4 — TEST BENCH ═══ -->
   <div class="screen" id="sc3">
 
+    <!-- Synthèse par exigence -->
+    <div class="card" id="req-summary-card-5" style="display:none">
+      <div class="card-title" style="font-size:11px">📋 Répartition par exigence</div>
+      <div id="req-summary-body-5" style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px"></div>
+    </div>
+
     <!-- Résumé global -->
     <div class="results-bar" id="results-bar">
       <div class="rs"><div class="rs-val" id="rs-total">0</div><div class="rs-label">Scénarios</div></div>
@@ -954,6 +960,13 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
   <!-- ═══ SCREEN 6 — Dashboard résultats ═══ -->
   <div class="screen" id="sc4">
+
+    <!-- Synthèse par exigence -->
+    <div class="card" id="req-summary-card-6" style="display:none">
+      <div class="card-title" style="font-size:11px">📋 Répartition par exigence</div>
+      <div id="req-summary-body-6" style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px"></div>
+    </div>
+
     <div class="card">
       <div class="card-head">
         <div class="card-title">📊 Dashboard des résultats</div>
@@ -1705,6 +1718,50 @@ function renderScenarioGrid(){
   });
 }
 
+// ── Synthèse par exigence — nombre de tests + pass/fail par REQ ──
+// Alimentée par testVectors[]._requirement (rempli par la génération
+// IA par exigence). Rendue à l'identique sur Screen 5 et Screen 6.
+function renderRequirementsSummary(){
+  const groups = {};
+  testVectors.forEach(tv => {
+    const req = tv._requirement || 'Sans exigence';
+    if(!groups[req]) groups[req] = { total: 0, pass: 0, fail: 0 };
+    groups[req].total++;
+    const sc = scenarios.find(s => s.name === tv.scenario);
+    if(sc?.status === 'pass') groups[req].pass++;
+    else if(sc?.status === 'fail') groups[req].fail++;
+  });
+
+  const reqNames = Object.keys(groups).sort();
+  const hasData = reqNames.length > 0 && reqNames.some(r => r !== 'Sans exigence');
+
+  ['5','6'].forEach(screenNum => {
+    const card = document.getElementById(`req-summary-card-${screenNum}`);
+    const body = document.getElementById(`req-summary-body-${screenNum}`);
+    if(!card || !body) return;
+
+    if(!hasData){ card.style.display = 'none'; return; }
+    card.style.display = 'block';
+
+    body.innerHTML = reqNames.map(req => {
+      const g = groups[req];
+      const done = g.pass + g.fail;
+      const badge = done === 0 ? ''
+        : `<span style="font-size:9px;margin-left:6px">
+             <span style="color:var(--green)">${g.pass}✓</span>
+             ${g.fail > 0 ? ` <span style="color:var(--red)">${g.fail}✗</span>` : ''}
+           </span>`;
+      return `
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 10px">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text2)">${req}</div>
+          <div style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--accent);margin-top:2px">
+            ${g.total} <span style="font-size:9px;color:var(--text3);font-weight:400">test${g.total>1?'s':''}</span>${badge}
+          </div>
+        </div>`;
+    }).join('');
+  });
+}
+
 function updateGlobalProgress(){
   const total = scenarios.length;
   const done  = scenarios.filter(s => s.status==='pass' || s.status==='fail').length;
@@ -1712,6 +1769,7 @@ function updateGlobalProgress(){
   bar.style.display = 'block';
   document.getElementById('global-progress-text').textContent = `${done} / ${total} scénarios terminés`;
   document.getElementById('global-progress-fill').style.width = total ? `${(done/total)*100}%` : '0%';
+  renderRequirementsSummary();
   const dot = document.getElementById('global-progress-dot');
   if(done === total && total > 0){
     dot.style.animation = 'none'; dot.style.background = 'var(--green)';
@@ -2020,6 +2078,7 @@ function renderDashboard(){
   const total  = scenarios.length;
   const passed = scenarios.filter(s=>s.status==='pass').length;
   const failed = scenarios.filter(s=>s.status==='fail').length;
+  renderRequirementsSummary();
 
   document.getElementById('dash-total').textContent = total;
   document.getElementById('dash-pass').textContent  = passed;
