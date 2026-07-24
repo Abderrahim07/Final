@@ -134,7 +134,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .tv-table tbody tr:last-child td{border-bottom:none}
 .tv-table tbody tr:hover{background:rgba(255,255,255,.02)}
 
-/* Scénarios (liste vidéos) */
+/* Scenarios (liste vidéos) */
 .video-list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
 .video-list-item{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .2s}
 .video-list-item:hover{border-color:rgba(0,212,255,.3);background:rgba(0,212,255,.04)}
@@ -381,7 +381,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .scm-btn-confirm:hover{opacity:.88}
 .scm-btn-confirm:disabled{opacity:.3;cursor:not-allowed}
 /* ══════════════════════════════════
-   BUILDER — Constructeur manuel drag & drop (page dédiée)
+   BUILDER — Manual drag & drop constructor (dedicated page)
 ══════════════════════════════════ */
 #builder-overlay{
   position:fixed;inset:0;background:#05070A;display:none;
@@ -443,6 +443,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .widget-desc{font-size:9px;color:var(--text3);margin-bottom:8px;line-height:1.4}
 
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -453,23 +454,23 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <span class="env-badge" id="env-badge">SIMULATION</span>
     <span style="font-size:12px;color:var(--text2)" id="topbar-user">—</span>
     <div class="avatar" id="topbar-avatar">?</div>
-    <button class="btn-secondary" id="topbar-logout" style="display:none;padding:6px 12px;font-size:11px" onclick="logout()">Déconnexion</button>
+    <button class="btn-secondary" id="topbar-logout" style="display:none;padding:6px 12px;font-size:11px" onclick="logout()">Log out</button>
   </div>
 </div>
 
-<div class="loader-overlay" id="loader"><div class="spinner"></div><div class="loader-msg" id="loader-msg">Traitement...</div></div>
+<div class="loader-overlay" id="loader"><div class="spinner"></div><div class="loader-msg" id="loader-msg">Processing...</div></div>
 <div class="toast" id="toast"></div>
 
 <!-- ═══ DASHBOARD — liste des projets de l'équipe ═══ -->
 <div id="dashboard-view" style="display:none;max-width:1000px;margin:0 auto;padding:28px 24px">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
     <div>
-      <div style="font-size:16px;font-weight:700;color:var(--text1)">Projets de l'équipe</div>
+      <div style="font-size:16px;font-weight:700;color:var(--text1)">Team projects</div>
       <div style="font-size:12px;color:var(--text2)" id="dashboard-team-label">—</div>
     </div>
     <button class="btn-primary" onclick="startNewProject()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-      Nouveau projet
+      New project
     </button>
   </div>
   <div id="dashboard-project-list" style="display:flex;flex-direction:column;gap:10px">
@@ -480,17 +481,17 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 <div class="app" id="app-container" style="display:none">
   <div class="proj-banner" id="proj-banner">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-    Projet actif :&nbsp;<strong id="banner-id">—</strong>
-    <span style="margin-left:auto;cursor:pointer;color:var(--accent);font-size:11px" onclick="showDashboard()">← Retour aux projets</span>
+    Active project :&nbsp;<strong id="banner-id">—</strong>
+    <span style="margin-left:auto;cursor:pointer;color:var(--accent);font-size:11px" onclick="showDashboard()">← Back to projects</span>
   </div>
 
   <!-- STEPPER -->
   <div class="stepper">
-    <div class="step-item active" id="nav0"><div class="step-num" id="num0">1</div><div class="step-label">Créer projet</div></div>
+    <div class="step-item active" id="nav0"><div class="step-num" id="num0">1</div><div class="step-label">Create project</div></div>
     <div class="step-sep"></div>
     <div class="step-item" id="nav1"><div class="step-num" id="num1">2</div><div class="step-label">Uploads</div></div>
     <div class="step-sep"></div>
-    <div class="step-item" id="nav2"><div class="step-num" id="num2">3</div><div class="step-label">Tests &amp; Scénarios</div></div>
+    <div class="step-item" id="nav2"><div class="step-num" id="num2">3</div><div class="step-label">Tests &amp; Scenarios</div></div>
     <div class="step-sep"></div>
     <div class="step-item" id="nav3"><div class="step-num" id="num3">4</div><div class="step-label">Compilation</div></div>
     <div class="step-sep"></div>
@@ -503,14 +504,14 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <div class="screen active" id="sc0">
     <div class="card">
       <div class="card-head">
-        <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Nouveau projet de test</div>
-        <div class="card-sub">Crée le projet — un dossier S3 sera automatiquement généré</div>
+        <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>New test project</div>
+        <div class="card-sub">Create the project — an S3 folder will be automatically generated</div>
       </div>
-      <div class="field"><label>Nom du projet *</label><input type="text" id="proj-name" placeholder="ex : LPA_Control_v2" oninput="updatePath()"/></div>
-      <div class="field"><label>Description</label><textarea id="proj-desc" placeholder="Composant testé, version, contexte..."></textarea></div>
-      <div class="s3-path"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Dossier S3 :&nbsp;<code id="s3-preview">s3://vecu-results/projects/…/</code></div>
+      <div class="field"><label>Project name *</label><input type="text" id="proj-name" placeholder="ex : LPA_Control_v2" oninput="updatePath()"/></div>
+      <div class="field"><label>Description</label><textarea id="proj-desc" placeholder="Component tested, version, context..."></textarea></div>
+      <div class="s3-path"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>S3 folder:&nbsp;<code id="s3-preview">s3://vecu-results/projects/…/</code></div>
     </div>
-    <div class="btn-row"><button class="btn-primary" onclick="createProject()">Créer le projet <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div>
+    <div class="btn-row"><button class="btn-primary" onclick="createProject()">Create project <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div>
   </div>
 
   <!-- ═══ SCREEN 2 — Uploads (Software + Requirements + I/O + Vidéos) ═══ -->
@@ -519,15 +520,15 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <!-- Ligne 1 : Software (3 catégories) -->
     <div class="card">
       <div class="card-head">
-        <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>Software (sources C)</div>
-        <div class="card-sub">Séparez vos fichiers par catégorie pour une visibilité claire de ce qui est enregistré</div>
+        <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>Software (C sources)</div>
+        <div class="card-sub">Separate your files by category for clear visibility of what's saved</div>
       </div>
       <div class="upload-3col">
 
         <!-- Modèle (.c généré) -->
         <div>
           <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">
-            🧩 Modèle (.c généré)
+            🧩 Model (.c generated)
           </div>
           <div class="upload-zone" onclick="document.getElementById('input-bin-model').click()">
             <input type="file" id="input-bin-model"
@@ -542,7 +543,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
                 <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
               </svg>
             </div>
-            <p style="font-size:12px">Code généré par Embedded Coder</p>
+            <p style="font-size:12px">Code generated by Embedded Coder</p>
             <span>ex: LDW_LPA_System.c/.h · rtwtypes.h</span>
           </div>
           <div id="bin-files-list-model"></div>
@@ -565,7 +566,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
                 <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
               </svg>
             </div>
-            <p style="font-size:12px">Couche d'adaptation runtime</p>
+            <p style="font-size:12px">Runtime adaptation layer</p>
             <span>ex: rte_adapter.c/.h · rte_interface.h</span>
           </div>
           <div id="bin-files-list-rte"></div>
@@ -587,7 +588,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
                 <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6v6H9z"/>
               </svg>
             </div>
-            <p style="font-size:12px">Basic Software (couche matérielle)</p>
+            <p style="font-size:12px">Basic Software (hardware layer)</p>
             <span>ex: bsw_main.c · bsw_os.c · bsw_com.c...</span>
           </div>
           <div id="bin-files-list-bsw"></div>
@@ -599,8 +600,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <!-- Ligne 2 : Requirements + I/O -->
     <div class="card">
       <div class="card-head">
-        <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Requirements &amp; Signaux I/O</div>
-        <div class="card-sub">Spécifications fonctionnelles et matrice des signaux</div>
+        <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Requirements &amp; I/O Signals</div>
+        <div class="card-sub">Functional specifications and signal matrix</div>
       </div>
       <div class="upload-3col" style="grid-template-columns:1fr 1fr">
 
@@ -610,7 +611,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           <div class="upload-zone" onclick="document.getElementById('input-req').click()">
             <input type="file" id="input-req" accept=".pdf,.docx,.txt" style="display:none" onchange="uploadFile(this,'req')"/>
             <div class="upload-icon" style="background:rgba(167,139,250,.08)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-            <p style="font-size:12px">Spécifications fonctionnelles</p>
+            <p style="font-size:12px">Functional specifications</p>
             <span>.pdf · .docx · .txt</span>
           </div>
           <div class="file-item" id="file-req" style="display:none"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span id="fname-req">—</span><span class="file-status">✓</span></div>
@@ -622,7 +623,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           <div class="upload-zone" onclick="document.getElementById('input-io').click()">
             <input type="file" id="input-io" accept=".csv,.xlsx,.arxml" style="display:none" onchange="uploadFile(this,'io')"/>
             <div class="upload-icon" style="background:rgba(0,229,160,.08)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></div>
-            <p style="font-size:12px">Matrice des signaux</p>
+            <p style="font-size:12px">Signal matrix</p>
             <span>.csv · .xlsx · .arxml</span>
           </div>
           <div class="file-item" id="file-io" style="display:none"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span id="fname-io">—</span><span class="file-status">✓</span></div>
@@ -632,39 +633,39 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     </div>
 
     <div class="btn-row">
-      <button class="btn-secondary" onclick="go(0)">Retour</button>
-      <button class="btn-primary" onclick="go(2)">Suivant <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+      <button class="btn-secondary" onclick="go(0)">Back</button>
+      <button class="btn-primary" onclick="go(2)">Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
     </div>
   </div>
 
-  <!-- ═══ SCREEN 3 — Tests & Scénarios ═══ -->
+  <!-- ═══ SCREEN 3 — Tests & Scenarios ═══ -->
   <div class="screen" id="sc2">
 
     <!-- NIVEAU 1 : Choix principal -->
     <div class="card">
       <div class="card-head">
-        <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>Stratégie de test</div>
-        <div class="card-sub">Comment veux-tu définir tes scénarios de test ?</div>
+        <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>Test strategy</div>
+        <div class="card-sub">How do you want to define your test scenarios?</div>
       </div>
       <div class="strategy-grid">
         <div class="strategy-card" id="str0" onclick="selectStrategy(0)">
           <span class="strategy-icon">📋</span>
-          <div class="strategy-title">Mes propres tests</div>
-          <div class="strategy-desc">Importer un fichier CSV avec tes vecteurs de test — contrôle total</div>
+          <div class="strategy-title">My own tests</div>
+          <div class="strategy-desc">Import a CSV file with your test vectors — full control</div>
         </div>
         <div class="strategy-card" id="str1" onclick="selectStrategy(1)">
           <span class="strategy-icon">🤖</span>
-          <div class="strategy-title">Génération par IA</div>
-          <div class="strategy-desc">Claude analyse tes requirements et signaux I/O pour générer automatiquement les tests</div>
+          <div class="strategy-title">AI Generation</div>
+          <div class="strategy-desc">Claude analyzes your requirements and I/O signals to automatically generate tests</div>
         </div>
       </div>
     </div>
 
-    <!-- Import CSV (visible si "Mes propres tests" sélectionné) -->
+    <!-- Import CSV (visible si "My own tests" sélectionné) -->
     <div class="card" id="sub-upload-card" style="display:none">
       <div class="card-head">
-        <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Import de vecteurs de test</div>
-        <div class="card-sub">Fichier CSV ou Excel — un vecteur par ligne</div>
+        <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Test vector import</div>
+        <div class="card-sub">CSV or Excel file — one vector per row</div>
       </div>
       <div class="upload-zone" onclick="document.getElementById('input-tests').click()" style="padding:20px">
         <input type="file" id="input-tests" accept=".csv,.xlsx,.xls" style="display:none" onchange="loadTestFile(this)"/>
@@ -674,16 +675,16 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
             <polyline points="14 2 14 8 20 8"/>
           </svg>
         </div>
-        <p>Fichier de vecteurs de test</p>
+        <p>Test vector file</p>
         <span>.csv · .xlsx</span>
       </div>
       <div class="file-item" id="file-tests" style="display:none">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
         <span id="fname-tests">—</span>
-        <span class="file-status">✓ CHARGÉ</span>
+        <span class="file-status">✓ LOADED</span>
       </div>
       <div style="margin-top:12px;padding:12px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r)">
-        <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Format CSV attendu</div>
+        <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Expected CSV format</div>
         <div style="font-family:var(--mono);font-size:11px;color:var(--text2);line-height:1.8">
           scenario,vehicle_speed,lateral_offset,expected_torque,expected_warning<br>
           <span style="color:var(--green)">scene_nominal,110,0.0,-0.1,false</span><br>
@@ -691,16 +692,16 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         </div>
       </div>
       <div id="tv-preview" style="display:none;margin-top:12px">
-        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px">Aperçu des vecteurs chargés</div>
+        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px">Preview of loaded vectors</div>
         <div class="tv-table-wrap"><table class="tv-table" id="tv-table"><thead></thead><tbody></tbody></table></div>
       </div>
     </div>
 
-    <!-- Génération par IA (visible si stratégie IA sélectionnée) -->
+    <!-- AI Generation (visible si stratégie IA sélectionnée) -->
     <div class="card" id="ai-generate-card" style="display:none">
       <div class="card-head">
-        <div class="card-title">🤖 Génération par IA</div>
-        <div class="card-sub">Claude (AWS Bedrock) génère un jeu de tests MC/DC minimal (N+1) pour chaque exigence de votre fichier requirements — nécessite des blocs "REQ-xx" dans le fichier uploadé à l'étape 2</div>
+        <div class="card-title">🤖 AI Generation</div>
+        <div class="card-sub">Claude (AWS Bedrock) generates a minimal MC/DC test set (N+1) for each requirement in your requirements file — requires "REQ-xx" blocks in the file uploaded in step 2</div>
       </div>
 
       <button class="btn-primary" id="btn-ai-generate" onclick="generateTestsWithAI()"
@@ -709,7 +710,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           <path d="M12 2a4 4 0 0 1 4 4v1a4 4 0 0 1-4 4 4 4 0 0 1-4-4V6a4 4 0 0 1 4-4z"/>
           <path d="M6 12v2a6 6 0 0 0 12 0v-2M12 20v2"/>
         </svg>
-        Générer les tests avec Claude
+        Generate tests with Claude
       </button>
 
       <div id="ai-status-bar" style="display:none;margin-top:12px;padding:12px 16px;
@@ -718,7 +719,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div style="display:flex;align-items:center;gap:8px">
             <div id="ai-dot" style="width:8px;height:8px;border-radius:50%;background:var(--amber)"></div>
-            <span id="ai-status-text" style="color:var(--text2)">En attente...</span>
+            <span id="ai-status-text" style="color:var(--text2)">Waiting...</span>
           </div>
         </div>
         <div style="margin-top:8px;height:3px;background:var(--border2);border-radius:2px;overflow:hidden">
@@ -731,21 +732,21 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <!-- Tableau des tests générés + téléchargement -->
       <div id="ai-tv-preview" style="display:none;margin-top:16px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <div style="font-size:11px;font-weight:600;color:var(--text2)">Tests générés par Claude</div>
+          <div style="font-size:11px;font-weight:600;color:var(--text2)">Tests generated by Claude</div>
           <button class="btn-secondary" onclick="downloadAIGeneratedTests()" style="padding:6px 14px;font-size:11px">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Télécharger en CSV
+            Download as CSV
           </button>
         </div>
         <div class="tv-table-wrap"><table class="tv-table" id="ai-tv-table"><thead></thead><tbody></tbody></table></div>
       </div>
     </div>
 
-    <!-- Scénarios disponibles (visible si upload CSV ou stratégie IA) -->
+    <!-- Scenarios disponibles (visible si upload CSV ou stratégie IA) -->
     <div class="card" id="scenarios-list-card" style="display:none">
       <div class="card-head">
-        <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>Scénarios à tester</div>
-        <div class="card-sub" id="sc-count-sub">Aucun scénario — importe un CSV ou génère des tests par IA</div>
+        <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>Scenarios to test</div>
+        <div class="card-sub" id="sc-count-sub">No scenario — import a CSV or generate tests via AI</div>
       </div>
       <div class="video-list" id="scenario-list-s3"></div>
     </div>
@@ -754,12 +755,12 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="card" id="video-gen-card" style="display:none">
       <div class="card-head" style="display:flex;align-items:center;justify-content:space-between">
         <div>
-          <div class="card-title">🎬 Génération des vidéos</div>
-          <div class="card-sub">Une vidéo générée par IA pour chaque scénario ci-dessus, nommée automatiquement pour correspondre</div>
+          <div class="card-title">🎬 Video Generation</div>
+          <div class="card-sub">An AI-generated video for each scenario above, automatically named to match</div>
         </div>
         <button class="btn-launch" id="btn-generate-videos" onclick="generateVideosForScenarios()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-          Générer les vidéos
+          Generate videos
         </button>
       </div>
 
@@ -769,7 +770,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div style="display:flex;align-items:center;gap:8px">
             <div id="video-gen-dot" style="width:8px;height:8px;border-radius:50%;background:var(--amber);animation:pulse 1s infinite"></div>
-            <span id="video-gen-status-text" style="color:var(--text2)">En attente...</span>
+            <span id="video-gen-status-text" style="color:var(--text2)">Waiting...</span>
           </div>
         </div>
         <div style="margin-top:8px;height:3px;background:var(--border2);border-radius:2px;overflow:hidden">
@@ -779,8 +780,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     </div>
 
     <div class="btn-row">
-      <button class="btn-secondary" onclick="go(1)">Retour</button>
-      <button class="btn-primary" onclick="go(3)">Suivant <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+      <button class="btn-secondary" onclick="go(1)">Back</button>
+      <button class="btn-primary" onclick="go(3)">Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
     </div>
   </div>
 
@@ -788,11 +789,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <div class="screen" id="sc2b">
     <div class="card">
       <div class="card-head">
-        <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Compilation du firmware</div>
-        <div class="card-sub">Compilez les sources uploadées, puis lancez les tests sur le firmware compilé</div>
+        <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Firmware compilation</div>
+        <div class="card-sub">Compile the uploaded sources, then run tests on the compiled firmware</div>
       </div>
 
-      <!-- Statut build -->
+      <!-- Status build -->
       <div id="build-status-bar" style="display:none;padding:12px 16px;
            background:var(--bg3);border:1px solid var(--border);
            border-radius:var(--r);font-family:var(--mono);font-size:11px">
@@ -815,7 +816,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </div>
 
       <div class="btn-row" style="margin-top:16px">
-        <button class="btn-secondary" onclick="go(2)">Retour</button>
+        <button class="btn-secondary" onclick="go(2)">Back</button>
 
         <!-- Bouton 1 : Compiler -->
         <button class="btn-primary" id="btn-compile" onclick="compileFirmware()">
@@ -844,18 +845,13 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <!-- ═══ SCREEN 4 — TEST BENCH ═══ -->
   <div class="screen" id="sc3">
 
-    <!-- Synthèse par exigence -->
-    <div class="card" id="req-summary-card-5" style="display:none">
-      <div class="card-title" style="font-size:11px">📋 Répartition par exigence</div>
-      <div id="req-summary-body-5" style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px"></div>
-    </div>
-
     <!-- Résumé global -->
     <div class="results-bar" id="results-bar">
-      <div class="rs"><div class="rs-val" id="rs-total">0</div><div class="rs-label">Scénarios</div></div>
+      <div class="rs"><div class="rs-val" id="rs-total">0</div><div class="rs-label">Scenarios</div></div>
+      <div class="rs"><div class="rs-val" style="color:var(--accent)" id="rs-req-count">0</div><div class="rs-label">Requirements</div></div>
       <div class="rs"><div class="rs-val" style="color:var(--green)" id="rs-pass">0</div><div class="rs-label">PASS</div></div>
       <div class="rs"><div class="rs-val" style="color:var(--red)" id="rs-fail">0</div><div class="rs-label">FAIL</div></div>
-      <div class="rs"><div class="rs-val" style="color:var(--accent)" id="rs-rate">—</div><div class="rs-label">Taux réussite</div></div>
+      <div class="rs"><div class="rs-val" style="color:var(--accent)" id="rs-rate">—</div><div class="rs-label">Pass rate</div></div>
     </div>
 
     <!-- ═══ VUE GRILLE — tous les scénarios en parallèle ═══ -->
@@ -864,7 +860,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <div class="card-head" style="display:flex;align-items:center;justify-content:space-between">
           <div>
             <div class="card-title">🚀 Lancement des tests</div>
-            <div class="card-sub">Tous les scénarios s'exécutent séquentiellement dans une seule tâche ECS</div>
+            <div class="card-sub">All scenarios run sequentially in a single ECS task</div>
           </div>
           <button class="btn-launch" id="btn-launch-parallel" onclick="launchAllTestsBulk()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -878,7 +874,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           <div style="display:flex;align-items:center;justify-content:space-between">
             <div style="display:flex;align-items:center;gap:8px">
               <div id="global-progress-dot" style="width:8px;height:8px;border-radius:50%;background:var(--amber);animation:pulse 1s infinite"></div>
-              <span id="global-progress-text" style="color:var(--text2)">0 / 0 scénarios terminés</span>
+              <span id="global-progress-text" style="color:var(--text2)">0 / 0 scenarios completed</span>
             </div>
           </div>
           <div style="margin-top:8px;height:3px;background:var(--border2);border-radius:2px;overflow:hidden">
@@ -890,7 +886,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div class="grid-scenarios" id="scenario-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:14px"></div>
 
       <div class="btn-row" style="margin-top:14px">
-        <button class="btn-secondary" onclick="go(3)">← Retour à la compilation</button>
+        <button class="btn-secondary" onclick="go(3)">← Back to compilation</button>
         <button class="btn-primary" id="btn-go-dashboard" onclick="go(5)" disabled style="opacity:.4;cursor:not-allowed">
           Voir le Dashboard <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </button>
@@ -899,7 +895,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
     <!-- ═══ VUE DÉTAIL — un scénario, valeurs réelles, générique ═══ -->
     <div id="scenario-detail-view" style="display:none">
-      <button class="btn-secondary" onclick="closeScenarioDetail()" style="margin-bottom:14px">← Retour à la grille</button>
+      <button class="btn-secondary" onclick="closeScenarioDetail()" style="margin-bottom:14px">← Back to grid</button>
 
       <div style="display:grid;grid-template-columns:1fr 380px;gap:14px">
 
@@ -919,13 +915,13 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           </div>
 
           <div class="card" style="margin:0">
-            <div class="card-title" style="font-size:11px">🎛 Vecteur de test (entrées)</div>
-            <div style="font-size:10px;color:var(--text3);margin-top:4px">Les signaux image (R/G/B) ne sont pas listés ici — ils sont extraits en direct de la vidéo, frame par frame, pas fixés par le vecteur de test</div>
+            <div class="card-title" style="font-size:11px">🎛 Test vector (inputs)</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:4px">Image signals (R/G/B) are not listed here — they are extracted live from the video, frame by frame, not fixed by the test vector</div>
             <div id="detail-inputs" style="margin-top:8px;display:flex;flex-direction:column;gap:6px"></div>
           </div>
 
           <div class="card" style="margin:0">
-            <div class="card-title" style="font-size:11px">📊 Résultats (sorties)</div>
+            <div class="card-title" style="font-size:11px">📊 Results (outputs)</div>
             <div id="detail-outputs" style="margin-top:8px;display:flex;flex-direction:column;gap:6px"></div>
           </div>
 
@@ -963,40 +959,55 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <!-- ═══ SCREEN 6 — Dashboard résultats ═══ -->
   <div class="screen" id="sc4">
 
-    <!-- Synthèse par exigence -->
-    <div class="card" id="req-summary-card-6" style="display:none">
-      <div class="card-title" style="font-size:11px">📋 Répartition par exigence</div>
-      <div id="req-summary-body-6" style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px"></div>
-    </div>
-
     <div class="card">
-      <div class="card-head">
-        <div class="card-title">📊 Dashboard des résultats</div>
-        <div class="card-sub">Vue d'ensemble de la campagne de test</div>
+      <div class="card-head" style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div class="card-title">📊 Results Dashboard</div>
+          <div class="card-sub">Test campaign overview</div>
+        </div>
+        <button class="btn-secondary" onclick="downloadReportPDF()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download PDF report
+        </button>
       </div>
       <div class="results-bar" id="dash-results-bar">
-        <div class="rs"><div class="rs-val" id="dash-total">0</div><div class="rs-label">Scénarios</div></div>
+        <div class="rs"><div class="rs-val" id="dash-total">0</div><div class="rs-label">Scenarios</div></div>
+        <div class="rs"><div class="rs-val" style="color:var(--accent)" id="dash-req-count">0</div><div class="rs-label">Requirements</div></div>
         <div class="rs"><div class="rs-val" style="color:var(--green)" id="dash-pass">0</div><div class="rs-label">PASS</div></div>
         <div class="rs"><div class="rs-val" style="color:var(--red)" id="dash-fail">0</div><div class="rs-label">FAIL</div></div>
-        <div class="rs"><div class="rs-val" style="color:var(--accent)" id="dash-rate">—</div><div class="rs-label">Taux réussite</div></div>
+        <div class="rs"><div class="rs-val" style="color:var(--accent)" id="dash-rate">—</div><div class="rs-label">Pass rate</div></div>
+      </div>
+    </div>
+
+    <!-- Graphiques -->
+    <div class="grid" style="display:grid;grid-template-columns:280px 1fr;gap:14px;margin-bottom:14px">
+      <div class="card" style="margin:0">
+        <div class="card-title" style="font-size:11px">Pass / Fail distribution</div>
+        <div style="position:relative;height:220px;margin-top:10px">
+          <canvas id="chart-passfail"></canvas>
+        </div>
+      </div>
+      <div class="card" style="margin:0">
+        <div class="card-title" style="font-size:11px">Pass rate by requirement</div>
+        <div id="chart-req-scroll" style="height:220px;overflow-y:auto;margin-top:10px;padding-right:6px"></div>
       </div>
     </div>
 
     <div class="card">
       <div class="card-head">
-        <div class="card-title">Détail par scénario</div>
+        <div class="card-title">Detail by scenario</div>
       </div>
       <div class="tv-table-wrap">
         <table class="tv-table" id="dash-table">
-          <thead><tr><th>Scénario</th><th>Statut</th><th>Verdict</th><th>Frames</th></tr></thead>
+          <thead><tr><th>Scenario</th><th>Status</th><th>Verdict</th><th>Frames</th></tr></thead>
           <tbody id="dash-table-body"></tbody>
         </table>
       </div>
     </div>
 
     <div class="btn-row">
-      <button class="btn-secondary" onclick="go(3)">← Retour au Test Bench</button>
-      <button class="btn-primary" onclick="startNewProject()">Nouveau projet</button>
+      <button class="btn-secondary" onclick="go(3)">← Back au Test Bench</button>
+      <button class="btn-primary" onclick="startNewProject()">New project</button>
     </div>
   </div>
 
@@ -1045,7 +1056,7 @@ async function generatePkcePair(){
     const challenge = base64UrlEncode(digest);
     return { verifier, challenge, method: 'S256' };
   }
-  console.warn('[AUTH] Contexte non sécurisé (HTTP) — PKCE en mode "plain" au lieu de S256');
+  console.warn('[AUTH] Insecure context (HTTP) — PKCE in "plain" mode instead of S256');
   return { verifier, challenge: verifier, method: 'plain' };
 }
 
@@ -1077,7 +1088,7 @@ async function exchangeCodeForTokens(code){
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: body.toString()
   });
-  if(!resp.ok) throw new Error('Échec échange du code Cognito');
+  if(!resp.ok) throw new Error('Cognito code exchange failed');
   const tokens = await resp.json();
   storeTokens(tokens);
 }
@@ -1212,9 +1223,9 @@ if(DEMO){ const b=document.getElementById('env-badge'); b.textContent='DEMO'; b.
 function updateTopbarUser(){
   const email = getUserEmail();
   const team  = getTeamId();
-  document.getElementById('topbar-user').textContent = email || (DEMO ? 'Mode démo' : '—');
+  document.getElementById('topbar-user').textContent = email || (DEMO ? 'Demo mode' : '—');
   document.getElementById('topbar-avatar').textContent = email ? email.slice(0,2).toUpperCase() : '?';
-  document.getElementById('dashboard-team-label').textContent = team ? `Équipe : ${team}` : '';
+  document.getElementById('dashboard-team-label').textContent = team ? `Team: ${team}` : '';
   if(AUTH_ENABLED) document.getElementById('topbar-logout').style.display = 'inline-block';
 }
 
@@ -1242,11 +1253,11 @@ async function loadDashboard(){
 
   if(DEMO){
     list.innerHTML = `<div style="font-size:12px;color:var(--text2);padding:20px;text-align:center">
-      Mode démo — pas de liste de projets persistée. Cliquez sur "Nouveau projet" pour tester.</div>`;
+      Demo mode — no persisted project list. Click "New project" to try it out.</div>`;
     return;
   }
 
-  list.innerHTML = `<div style="font-size:12px;color:var(--text2);padding:20px;text-align:center">⏳ Chargement...</div>`;
+  list.innerHTML = `<div style="font-size:12px;color:var(--text2);padding:20px;text-align:center">⏳ Loading...</div>`;
   try{
     const resp = await apiFetch(`${API}/projects`);
     let data = JSON.parse(await resp.text());
@@ -1255,7 +1266,7 @@ async function loadDashboard(){
 
     if(projects.length === 0){
       list.innerHTML = `<div style="font-size:12px;color:var(--text2);padding:20px;text-align:center">
-        Aucun projet pour votre équipe pour le moment.</div>`;
+        No project for your team yet.</div>`;
       return;
     }
 
@@ -1286,8 +1297,8 @@ function resumeProject(project){
   scenarios = []; testVectors = []; buildReady = false;
   showBanner();
   showAppContainer();
-  go(2); // Tests & Scénarios — refreshScenarioListS3() se déclenche automatiquement
-  showToast(`✅ Projet "${projName}" repris`,'success');
+  go(2); // Tests & Scenarios — refreshScenarioListS3() se déclenche automatiquement
+  showToast(`✅ Project "${projName}" resumed`,'success');
 }
 
 // ── Démarrage de l'application ──
@@ -1300,8 +1311,8 @@ function resumeProject(project){
   }catch(e){
     console.error('[BOOTSTRAP]', e);
     document.body.innerHTML = `<div style="padding:40px;font-family:monospace;color:#ff5c5c;background:#080B10;min-height:100vh">
-      ❌ Erreur au démarrage de l'application :<br/><br/>${e.message}<br/><br/>
-      Voir la console navigateur (F12) pour le détail complet.</div>`;
+      ❌ Error starting the application:<br/><br/>${e.message}<br/><br/>
+      See the browser console (F12) for full details.</div>`;
   }
 })();
 
@@ -1329,20 +1340,20 @@ function updatePath(){
   document.getElementById('s3-preview').textContent=`s3://vecu-results/projects/${v||'…'}/`;
 }
 
-// ── Créer projet
+// ── Create project
 async function createProject(){
   const name=document.getElementById('proj-name').value.trim();
   const desc=document.getElementById('proj-desc').value.trim();
-  if(!name){ showToast('⚠️ Nom requis','error'); return; }
-  if(DEMO){ PROJECT_ID='demo-'+Math.random().toString(36).slice(2,6); projName=name; showBanner(); updatePath(); showToast(`✅ Projet "${name}" créé`,'success'); go(1); return; }
-  showLoader('Création...');
+  if(!name){ showToast('⚠️ Name required','error'); return; }
+  if(DEMO){ PROJECT_ID='demo-'+Math.random().toString(36).slice(2,6); projName=name; showBanner(); updatePath(); showToast(`✅ Project "${name}" created`,'success'); go(1); return; }
+  showLoader('Creating...');
   try{
     const resp=await apiFetch(`${API}/projects`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,description:desc})});
     let d=JSON.parse(await resp.text());
     if(d.body&&typeof d.body==='string') d=JSON.parse(d.body);
     if(!d.project_id) throw new Error('project_id manquant');
     PROJECT_ID=d.project_id; projName=name; showBanner(); updatePath();
-    showToast(`✅ Projet "${name}" — ID: ${PROJECT_ID}`,'success'); go(1);
+    showToast(`✅ Project "${name}" — ID: ${PROJECT_ID}`,'success'); go(1);
   }catch(e){ showToast('❌ '+e.message,'error',6000); }
   finally{ hideLoader(); }
 }
@@ -1352,7 +1363,7 @@ function showBanner(){ document.getElementById('banner-id').textContent=PROJECT_
 // ── Upload fichier simple
 async function uploadFile(input,type){
   const file=input.files[0]; if(!file) return;
-  if(!PROJECT_ID){ showToast('⚠️ Crée d\'abord un projet','error'); return; }
+  if(!PROJECT_ID){ showToast('⚠️ Create a project first','error'); return; }
   const ids={bin:['file-bin','fname-bin'],req:['file-req','fname-req'],io:['file-io','fname-io']};
   const [fid,nid]=ids[type]||['',''];
   document.getElementById(nid).textContent=`⏳ ${file.name}`;
@@ -1407,7 +1418,7 @@ async function refreshScenarioListS3(){
   const sub  = document.getElementById('sc-count-sub');
   list.innerHTML = '';
 
-  // Scénarios déjà en mémoire → afficher directement
+  // Scenarios déjà en mémoire → afficher directement
   if(scenarios.length > 0){
     renderScenarioList();
     return;
@@ -1415,11 +1426,11 @@ async function refreshScenarioListS3(){
 
   // Pas en mémoire → charger depuis S3
   if(!PROJECT_ID || DEMO){
-    sub.textContent = 'Aucun scénario — importe un CSV ou génère des tests par IA';
+    sub.textContent = 'No scenario — import a CSV or generate tests via AI';
     return;
   }
 
-  sub.textContent = '⏳ Chargement des scénarios depuis S3...';
+  sub.textContent = '⏳ Loading scenarios from S3...';
   try{
     const resp = await apiFetch(`${API}/projects/${PROJECT_ID}/scenarios`);
     let data   = JSON.parse(await resp.text());
@@ -1427,7 +1438,7 @@ async function refreshScenarioListS3(){
 
     const saved = data.scenarios || [];
     if(saved.length === 0){
-      sub.textContent = 'Aucun scénario — importe un CSV ou génère des tests par IA';
+      sub.textContent = 'No scenario — import a CSV or generate tests via AI';
       return;
     }
 
@@ -1447,7 +1458,7 @@ async function refreshScenarioListS3(){
     }
 
     renderScenarioList();
-    showToast(`✅ ${scenarios.length} scénario(s) chargé(s)`,'success');
+    showToast(`✅ ${scenarios.length} scenario(s) loaded`,'success');
 
   }catch(e){
     sub.textContent = '❌ Erreur : ' + e.message;
@@ -1460,7 +1471,7 @@ function renderVideoList(){
   scenarios.forEach((sc,i)=>{
     const item=document.createElement('div');
     item.className='video-list-item';
-    const statusTag=sc.status==='pass'?'<span class="tag tag-green">PASS</span>':sc.status==='fail'?'<span class="tag tag-red">FAIL</span>':'<span class="tag tag-gray">EN ATTENTE</span>';
+    const statusTag=sc.status==='pass'?'<span class="tag tag-green">PASS</span>':sc.status==='fail'?'<span class="tag tag-red">FAIL</span>':'<span class="tag tag-gray">PENDING</span>';
     item.innerHTML=`
       <div class="video-thumb-mini" id="vthumb-${i}">
         <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg4)">
@@ -1519,21 +1530,21 @@ function setVideoGenStatus(type, message, progress){
 }
 
 async function generateVideosForScenarios(){
-  if(!PROJECT_ID && !DEMO){ showToast('⚠️ Crée d\'abord un projet','error'); return; }
-  if(scenarios.length === 0){ showToast('⚠️ Aucun scénario disponible','error'); return; }
+  if(!PROJECT_ID && !DEMO){ showToast('⚠️ Create a project first','error'); return; }
+  if(scenarios.length === 0){ showToast('⚠️ No scenario available','error'); return; }
 
   const btn = document.getElementById('btn-generate-videos');
   btn.disabled = true; btn.style.opacity = '.5';
-  setVideoGenStatus('running', `Démarrage — ${scenarios.length} scénario(s)...`, 5);
+  setVideoGenStatus('running', `Starting — ${scenarios.length} scenario(s)...`, 5);
 
   if(DEMO){
     for(let i=0;i<scenarios.length;i++){
       await sleep(600);
       scenarios[i].status = 'video_ready';
-      setVideoGenStatus('running', `${i+1}/${scenarios.length} vidéo(s) générée(s)...`, 10+Math.round(80*(i+1)/scenarios.length));
+      setVideoGenStatus('running', `${i+1}/${scenarios.length} video(s) generated...`, 10+Math.round(80*(i+1)/scenarios.length));
     }
-    setVideoGenStatus('done', `✅ ${scenarios.length} vidéo(s) générée(s) (simulation)`, 100);
-    showToast('✅ Vidéos générées (simulation)','success');
+    setVideoGenStatus('done', `✅ ${scenarios.length} video(s) generated (simulation)`, 100);
+    showToast('✅ Videos generated (simulation)','success');
     renderScenarioList();
     btn.disabled = false; btn.style.opacity = '1';
     return;
@@ -1596,13 +1607,13 @@ async function pollVideoGenStatus(jobId){
           }
         });
 
-        setVideoGenStatus('done', `✅ ${result.completed||0}/${result.total||scenarios.length} vidéos générées`, 100);
-        showToast(`✅ ${result.completed||0} vidéo(s) générée(s)`,'success');
+        setVideoGenStatus('done', `✅ ${result.completed||0}/${result.total||scenarios.length} videos generated`, 100);
+        showToast(`✅ ${result.completed||0} video(s) generated`,'success');
         renderScenarioList();
         return;
 
       } else if(data.status === 'FAILED'){
-        setVideoGenStatus('failed', '❌ '+(data.message||'Échec de la génération'), 0);
+        setVideoGenStatus('failed', '❌ '+(data.message||'Generation failed'), 0);
         return;
       }
     }catch(e){
@@ -1610,7 +1621,7 @@ async function pollVideoGenStatus(jobId){
     }
   }
 
-  setVideoGenStatus('failed', '⏱ Timeout après 19 min', 0);
+  setVideoGenStatus('failed', '⏱ Timeout after 19 min', 0);
 }
 
 function renderScenarioList(){
@@ -1618,19 +1629,19 @@ function renderScenarioList(){
   const sub  = document.getElementById('sc-count-sub');
   list.innerHTML = '';
   if(scenarios.length === 0){
-    sub.textContent = 'Aucun scénario — importe un CSV ou génère des tests par IA';
+    sub.textContent = 'No scenario — import a CSV or generate tests via AI';
     return;
   }
-  sub.textContent = `${scenarios.length} scénario${scenarios.length>1?'s':''} prêt${scenarios.length>1?'s':''}`;
+  sub.textContent = `${scenarios.length} scenario${scenarios.length>1?'s':''} ready`;
   scenarios.forEach((sc, i) => {
     const item = document.createElement('div');
     item.className = 'video-list-item';
     const statusTag = sc.status==='pass'?'<span class="tag tag-green">PASS</span>'
       :sc.status==='fail'?'<span class="tag tag-red">FAIL</span>'
-      :sc.status==='running'?'<span class="tag tag-cyan">EN COURS</span>'
-      :sc.status==='video_ready'?'<span class="tag tag-green">VIDÉO OK</span>'
-      :sc.status==='video_failed'?'<span class="tag tag-red">VIDÉO ÉCHEC</span>'
-      :'<span class="tag tag-gray">PAS DE VIDÉO</span>';
+      :sc.status==='running'?'<span class="tag tag-cyan">RUNNING</span>'
+      :sc.status==='video_ready'?'<span class="tag tag-green">VIDEO OK</span>'
+      :sc.status==='video_failed'?'<span class="tag tag-red">VIDEO FAILED</span>'
+      :'<span class="tag tag-gray">NO VIDEO</span>';
     const hasVector = testVectors.find(v => v.scenario === sc.name) || sc.test_vector || testVectors[i];
     item.innerHTML = `
       <div class="video-thumb-mini" id="s3thumb-${i}">
@@ -1643,7 +1654,7 @@ function renderScenarioList(){
       </div>
       <div class="video-item-info">
         <div class="video-item-name">SC ${i+1} — ${sc.name}</div>
-        <div class="video-item-meta">${hasVector?'Vecteur lié ✓':'Pas de vecteur'} · ${sc.s3key?'Vidéo prête':'Vidéo à générer'}</div>
+        <div class="video-item-meta">${hasVector?'Vector linked ✓':'Pas de vecteur'} · ${sc.s3key?'Video ready':'Video to generate'}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         ${statusTag}
@@ -1702,8 +1713,8 @@ function renderScenarioGrid(){
     const status = sc.status || 'idle';
     const badge  = status==='pass' ? '<span class="tag tag-green">PASS</span>'
                  : status==='fail' ? '<span class="tag tag-red">FAIL</span>'
-                 : status==='running' ? '<span class="tag tag-cyan">EN COURS</span>'
-                 : '<span class="tag tag-gray">EN ATTENTE</span>';
+                 : status==='running' ? '<span class="tag tag-cyan">RUNNING</span>'
+                 : '<span class="tag tag-gray">PENDING</span>';
     return `
       <div class="scenario-card ${status}" onclick="openScenarioDetail(${i})">
         <div class="scenario-card-thumb" id="grid-thumb-${i}">
@@ -1726,45 +1737,170 @@ function renderScenarioGrid(){
 // ── Synthèse par exigence — nombre de tests + pass/fail par REQ ──
 // Alimentée par testVectors[]._requirement (rempli par la génération
 // IA par exigence). Rendue à l'identique sur Screen 5 et Screen 6.
-function renderRequirementsSummary(){
+// Groupe testVectors par exigence — utilisé pour le compteur simple ET
+// pour le graphique "pass rate par exigence" (ne fait jamais une grille
+// d'une case par exigence — reste léger même avec 100+ REQ).
+function getRequirementGroups(){
   const groups = {};
   testVectors.forEach(tv => {
-    const req = tv._requirement || 'Sans exigence';
+    const req = tv._requirement || '';
+    if(!req) return;
     if(!groups[req]) groups[req] = { total: 0, pass: 0, fail: 0 };
     groups[req].total++;
     const sc = scenarios.find(s => s.name === tv.scenario);
     if(sc?.status === 'pass') groups[req].pass++;
     else if(sc?.status === 'fail') groups[req].fail++;
   });
+  return groups;
+}
 
-  const reqNames = Object.keys(groups).sort();
-  const hasData = reqNames.length > 0 && reqNames.some(r => r !== 'Sans exigence');
+// Met à jour uniquement le compteur "Requirements" dans les barres de
+// stats (Screen 5 et 6) — pas de grille détaillée, reste léger à 100+ REQ.
+function updateRequirementCount(){
+  const groups = getRequirementGroups();
+  const count = Object.keys(groups).length;
+  const el5 = document.getElementById('rs-req-count');
+  const el6 = document.getElementById('dash-req-count');
+  if(el5) el5.textContent = count;
+  if(el6) el6.textContent = count;
+}
 
-  ['5','6'].forEach(screenNum => {
-    const card = document.getElementById(`req-summary-card-${screenNum}`);
-    const body = document.getElementById(`req-summary-body-${screenNum}`);
-    if(!card || !body) return;
+let passFailChartInstance = null;
 
-    if(!hasData){ card.style.display = 'none'; return; }
-    card.style.display = 'block';
+function renderCharts(){
+  updateRequirementCount();
 
-    body.innerHTML = reqNames.map(req => {
-      const g = groups[req];
-      const done = g.pass + g.fail;
-      const badge = done === 0 ? ''
-        : `<span style="font-size:9px;margin-left:6px">
-             <span style="color:var(--green)">${g.pass}✓</span>
-             ${g.fail > 0 ? ` <span style="color:var(--red)">${g.fail}✗</span>` : ''}
-           </span>`;
-      return `
-        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 10px">
-          <div style="font-family:var(--mono);font-size:10px;color:var(--text2)">${req}</div>
-          <div style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--accent);margin-top:2px">
-            ${g.total} <span style="font-size:9px;color:var(--text3);font-weight:400">test${g.total>1?'s':''}</span>${badge}
-          </div>
-        </div>`;
-    }).join('');
-  });
+  const passed = scenarios.filter(s => s.status === 'pass').length;
+  const failed = scenarios.filter(s => s.status === 'fail').length;
+  const pending = scenarios.length - passed - failed;
+
+  // ── Donut PASS/FAIL ──
+  const ctx = document.getElementById('chart-passfail');
+  if(ctx && window.Chart){
+    if(passFailChartInstance) passFailChartInstance.destroy();
+    passFailChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['PASS', 'FAIL', 'Pending'],
+        datasets: [{
+          data: [passed, failed, pending],
+          backgroundColor: ['#00e5a0', '#ff5c5c', '#2c3650'],
+          borderColor: '#111722', borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { color: '#9aa5b8', font: { size: 10, family: 'monospace' }, padding: 12 } },
+          tooltip: { enabled: true },
+        }
+      }
+    });
+  }
+
+  // ── Barres horizontales : taux de réussite par exigence (scrollable,
+  // compact — fonctionne aussi bien avec 5 qu'avec 100+ exigences) ──
+  const reqScroll = document.getElementById('chart-req-scroll');
+  if(reqScroll){
+    const groups = getRequirementGroups();
+    const reqNames = Object.keys(groups).sort();
+
+    if(reqNames.length === 0){
+      reqScroll.innerHTML = `<div style="font-size:11px;color:var(--text3);padding:20px;text-align:center">No requirement data yet — generate tests via AI to see this breakdown</div>`;
+    } else {
+      reqScroll.innerHTML = reqNames.map(req => {
+        const g = groups[req];
+        const donePct = g.total ? Math.round((g.pass / g.total) * 100) : 0;
+        const donePctOfTotal = g.total ? (g.pass / g.total) * 100 : 0;
+        const failPctOfTotal = g.total ? (g.fail / g.total) * 100 : 0;
+        return `
+          <div style="margin-bottom:8px">
+            <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--text2);margin-bottom:3px">
+              <span>${req}</span>
+              <span>${g.pass}/${g.total} <span style="color:var(--text3)">(${donePct}%)</span></span>
+            </div>
+            <div style="height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;display:flex">
+              <div style="width:${donePctOfTotal}%;background:var(--green)"></div>
+              <div style="width:${failPctOfTotal}%;background:var(--red)"></div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+  }
+}
+
+// ── Export PDF du rapport de résultats ──
+// Génère une vue imprimable dédiée et déclenche l'impression navigateur
+// (Enregistrer au format PDF) — pas de dépendance externe, marche partout.
+function downloadReportPDF(){
+  const passed = scenarios.filter(s => s.status === 'pass').length;
+  const failed = scenarios.filter(s => s.status === 'fail').length;
+  const total = scenarios.length;
+  const rate = total ? Math.round((passed/total)*100) : 0;
+  const groups = getRequirementGroups();
+  const now = new Date().toLocaleString('en-US');
+
+  const rows = scenarios.map(sc => {
+    const result = sc.result || {};
+    const statusLabel = sc.status === 'pass' ? 'PASS' : sc.status === 'fail' ? 'FAIL' : '—';
+    return `<tr>
+      <td>${sc.name}</td>
+      <td class="status-${sc.status}">${statusLabel}</td>
+      <td>${result.reason || '—'}</td>
+      <td>${result.total_frames ?? '—'}</td>
+    </tr>`;
+  }).join('');
+
+  const reqRows = Object.keys(groups).sort().map(req => {
+    const g = groups[req];
+    return `<tr><td>${req}</td><td>${g.total}</td><td>${g.pass}</td><td>${g.fail}</td></tr>`;
+  }).join('');
+
+  const win = window.open('', '_blank');
+  win.document.write(`
+    <html><head><title>Test Report — ${PROJECT_ID || projName || 'vECU'}</title>
+    <style>
+      body{font-family:'SF Mono',Consolas,monospace;color:#1a1a1a;padding:40px;max-width:900px;margin:0 auto}
+      h1{font-size:20px;margin-bottom:4px}
+      .sub{color:#666;font-size:12px;margin-bottom:24px}
+      .stats{display:flex;gap:24px;margin-bottom:28px;padding:16px 0;border-top:1px solid #ddd;border-bottom:1px solid #ddd}
+      .stat{text-align:center}
+      .stat-val{font-size:22px;font-weight:700}
+      .stat-label{font-size:10px;color:#666;text-transform:uppercase}
+      table{width:100%;border-collapse:collapse;margin-bottom:28px;font-size:11px}
+      th,td{text-align:left;padding:6px 10px;border-bottom:1px solid #eee}
+      th{background:#f5f5f5;font-size:10px;text-transform:uppercase;color:#666}
+      .status-pass{color:#0a9e6b;font-weight:700}
+      .status-fail{color:#d92b2b;font-weight:700}
+      h2{font-size:14px;margin-top:32px;margin-bottom:10px}
+      @media print{ body{padding:20px} }
+    </style></head>
+    <body>
+      <h1>vECU Test Report</h1>
+      <div class="sub">Project: ${PROJECT_ID || projName || '—'} — Generated ${now}</div>
+      <div class="stats">
+        <div class="stat"><div class="stat-val">${total}</div><div class="stat-label">Scenarios</div></div>
+        <div class="stat"><div class="stat-val">${Object.keys(groups).length}</div><div class="stat-label">Requirements</div></div>
+        <div class="stat"><div class="stat-val" style="color:#0a9e6b">${passed}</div><div class="stat-label">Pass</div></div>
+        <div class="stat"><div class="stat-val" style="color:#d92b2b">${failed}</div><div class="stat-label">Fail</div></div>
+        <div class="stat"><div class="stat-val">${rate}%</div><div class="stat-label">Pass rate</div></div>
+      </div>
+
+      <h2>Results by requirement</h2>
+      <table>
+        <thead><tr><th>Requirement</th><th>Total</th><th>Pass</th><th>Fail</th></tr></thead>
+        <tbody>${reqRows || '<tr><td colspan="4">No requirement data</td></tr>'}</tbody>
+      </table>
+
+      <h2>Results by scenario</h2>
+      <table>
+        <thead><tr><th>Scenario</th><th>Status</th><th>Reason</th><th>Frames</th></tr></thead>
+        <tbody>${rows || '<tr><td colspan="4">No scenarios</td></tr>'}</tbody>
+      </table>
+    </body></html>
+  `);
+  win.document.close();
+  setTimeout(() => win.print(), 400);
 }
 
 function updateGlobalProgress(){
@@ -1772,9 +1908,9 @@ function updateGlobalProgress(){
   const done  = scenarios.filter(s => s.status==='pass' || s.status==='fail').length;
   const bar   = document.getElementById('global-progress-bar');
   bar.style.display = 'block';
-  document.getElementById('global-progress-text').textContent = `${done} / ${total} scénarios terminés`;
+  document.getElementById('global-progress-text').textContent = `${done} / ${total} scenarios completed`;
   document.getElementById('global-progress-fill').style.width = total ? `${(done/total)*100}%` : '0%';
-  renderRequirementsSummary();
+  updateRequirementCount();
   const dot = document.getElementById('global-progress-dot');
   if(done === total && total > 0){
     dot.style.animation = 'none'; dot.style.background = 'var(--green)';
@@ -1791,7 +1927,7 @@ function updateGlobalProgress(){
 }
 
 async function launchAllTestsBulk(){
-  if(scenarios.length === 0){ showToast('⚠️ Aucun scénario disponible','error'); return; }
+  if(scenarios.length === 0){ showToast('⚠️ No scenario available','error'); return; }
 
   document.getElementById('scenario-grid-view').style.display = 'block';
   document.getElementById('scenario-detail-view').style.display = 'none';
@@ -1843,7 +1979,7 @@ async function launchAllTestsBulk(){
       return;
     }
 
-    addLog(`[BULK] 1 tâche lancée pour ${scenarios.length} scénario(s) — run_id=${data.run_id}`, 'info');
+    addLog(`[BULK] 1 task launched for ${scenarios.length} scenario(s) — run_id=${data.run_id}`, 'info');
     await pollBulkResult(data.run_id);
 
   }catch(e){
@@ -1879,7 +2015,7 @@ async function pollBulkResult(runId){
             sc.result = result;
           } else {
             sc.status = 'fail';
-            sc.result = { reason: 'Résultat introuvable dans global_report' };
+            sc.result = { reason: 'Result not found in global_report' };
           }
         });
 
@@ -1888,11 +2024,11 @@ async function pollBulkResult(runId){
         if(document.getElementById('scenario-detail-view').style.display !== 'none'){
           renderDetailGeneric(activeIdx);
         }
-        addLog(`[BULK] ✅ Terminé — ${globalReport.passed_scenarios||0}/${globalReport.total_scenarios||scenarios.length} PASS`, 'ok');
+        addLog(`[BULK] ✅ Done — ${globalReport.passed_scenarios||0}/${globalReport.total_scenarios||scenarios.length} PASS`, 'ok');
         return;
 
       } else if(data.status === 'FAILED' || data.status === 'ERROR'){
-        scenarios.forEach(sc => { sc.status='fail'; sc.result={reason: data.error || data.reason || 'Échec ECS'}; });
+        scenarios.forEach(sc => { sc.status='fail'; sc.result={reason: data.error || data.reason || 'ECS failed'}; });
         renderScenarioGrid(); updateGlobalProgress();
         return;
       }
@@ -1901,7 +2037,7 @@ async function pollBulkResult(runId){
     }
   }
 
-  scenarios.forEach(sc => { sc.status='fail'; sc.result={reason:'Timeout après 10 min'}; });
+  scenarios.forEach(sc => { sc.status='fail'; sc.result={reason:'Timeout after 10 min'}; });
   renderScenarioGrid();
   updateGlobalProgress();
 }
@@ -1929,7 +2065,7 @@ async function openScenarioDetail(idx){
   }
 
   clearLog();
-  addLog(`[INIT] Scénario : ${sc.name}`, 'info');
+  addLog(`[INIT] Scenario: ${sc.name}`, 'info');
   renderDetailGeneric(idx);
 }
 
@@ -1969,8 +2105,8 @@ function renderDetailGeneric(idx){
   const badge = document.getElementById('detail-status-badge');
   if(sc.status === 'pass'){ badge.className='tag tag-green'; badge.textContent='PASS'; }
   else if(sc.status === 'fail'){ badge.className='tag tag-red'; badge.textContent='FAIL'; }
-  else if(sc.status === 'running'){ badge.className='tag tag-cyan'; badge.textContent='EN COURS'; }
-  else { badge.className='tag tag-gray'; badge.textContent='EN ATTENTE'; }
+  else if(sc.status === 'running'){ badge.className='tag tag-cyan'; badge.textContent='RUNNING'; }
+  else { badge.className='tag tag-gray'; badge.textContent='PENDING'; }
 
   // Description du TC — visible dès l'ouverture, pour vérifier que la
   // vidéo correspond bien à l'intention du test pendant l'exécution
@@ -1985,16 +2121,16 @@ function renderDetailGeneric(idx){
   inputsEl.innerHTML = inputEntries.length ? inputEntries.map(([k,v]) => `
     <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px">
       <span style="color:var(--text2)">${k}</span><span style="color:var(--accent);font-weight:700">${v}</span>
-    </div>`).join('') : `<div style="font-size:11px;color:var(--text3)">Aucun signal d'entrée dans ce vecteur</div>`;
+    </div>`).join('') : `<div style="font-size:11px;color:var(--text3)">No input signal in this vector</div>`;
 
   // Outputs — uniquement les sorties que CE test vérifie réellement
   // (expected_*), pas la totalité des sorties du firmware.
   renderOutputsPanel(currentDetailExpected, result.actual || {}, null);
 
   document.getElementById('detail-reason').textContent =
-    result.reason || (sc.status==='running' ? 'Test en cours...' : 'Pas encore lancé');
+    result.reason || (sc.status==='running' ? 'Test en cours...' : 'Not launched yet');
 
-  if(sc.status==='running') addLog('[STATUS] En cours d\'exécution...', 'info');
+  if(sc.status==='running') addLog('[STATUS] Running...', 'info');
   else if(sc.status==='pass') addLog('[RESULT] ✅ PASS — '+(result.reason||''), 'ok');
   else if(sc.status==='fail') addLog('[RESULT] ❌ FAIL — '+(result.reason||''), 'err');
 
@@ -2012,14 +2148,14 @@ function renderOutputsPanel(expected, actualSource, frameLabel){
   const header = frameLabel
     ? `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--border)">
          <span style="font-size:10px;color:var(--accent);font-weight:700">📍 ${frameLabel}</span>
-         <button onclick="resetToGlobalView()" style="font-size:9px;color:var(--text3);background:none;border:none;cursor:pointer;text-decoration:underline">Vue globale</button>
+         <button onclick="resetToGlobalView()" style="font-size:9px;color:var(--text3);background:none;border:none;cursor:pointer;text-decoration:underline">Global view</button>
        </div>`
     : '';
 
   if(names.length === 0){
     outputsEl.innerHTML = header + `<div style="font-size:10px;color:var(--amber);padding:8px;
       background:rgba(255,181,71,.08);border:1px solid rgba(255,181,71,.2);border-radius:6px">
-      ⚠️ Ce vecteur de test ne contient aucun signal "expected_*" — rien n'a été réellement vérifié.</div>`;
+      ⚠️ This test vector contains no "expected_*" signal — nothing was actually verified.</div>`;
     return;
   }
 
@@ -2116,7 +2252,7 @@ function renderDashboard(){
   const total  = scenarios.length;
   const passed = scenarios.filter(s=>s.status==='pass').length;
   const failed = scenarios.filter(s=>s.status==='fail').length;
-  renderRequirementsSummary();
+  renderCharts();
 
   document.getElementById('dash-total').textContent = total;
   document.getElementById('dash-pass').textContent  = passed;
@@ -2147,7 +2283,7 @@ function loadTestFile(input){
     testVectors=lines.slice(1).map(l=>{ const v=l.split(','); return Object.fromEntries(headers.map((h,i)=>[h.trim(),v[i]?.trim()])); });
     renderTVPreview(headers,testVectors);
     buildScenariosFromTestVectors();
-    showToast(`✅ ${testVectors.length} vecteurs chargés`,'success');
+    showToast(`✅ ${testVectors.length} vectors loaded`,'success');
   };
   reader.readAsText(file);
   // Upload CSV dans specs/
@@ -2166,7 +2302,7 @@ function loadTestFile(input){
 
 // ── Strategy
 // ══════════════════════════════════════════════
-// BUILDER — Constructeur manuel drag & drop (page dédiée)
+// BUILDER — Manual drag & drop constructor (dedicated page)
 // ══════════════════════════════════════════════
 let builderSignals   = [];   // signaux disponibles dans la palette
 let builderValues    = {};   // valeurs courantes des widgets posés {signal_name: value}
@@ -2186,7 +2322,7 @@ function closeBuilder(){
 
 function builderPopulateVideoSelect(){
   const sel = document.getElementById('builder-sc-video');
-  sel.innerHTML = '<option value="">— Vidéo scénario associée —</option>';
+  sel.innerHTML = '<option value="">— Associated scenario video —</option>';
   scenarios.forEach((sc,i)=>{
     const opt = document.createElement('option');
     opt.value = i; opt.textContent = `SC${i+1} — ${sc.name}`;
@@ -2234,8 +2370,8 @@ function renderBuilderPalette(){
       <div class="palette-item-desc">${sig.description || ''}</div>
     </div>`;
 
-  let html = '<div class="palette-group-label">Entrées</div>' + inputs.map(itemHtml).join('');
-  html += '<div class="palette-group-label">Sorties</div>' + outputs.map(itemHtml).join('');
+  let html = '<div class="palette-group-label">Inputs</div>' + inputs.map(itemHtml).join('');
+  html += '<div class="palette-group-label">Outputs</div>' + outputs.map(itemHtml).join('');
   list.innerHTML = html;
 }
 
@@ -2391,11 +2527,11 @@ function builderConfirmAndLaunch(){
   const videoIdx  = parseInt(videoSel?.value ?? '-1');
 
   if(Object.keys(builderValues).length === 0){
-    showToast('⚠️ Glissez au moins un signal dans la zone de travail','error');
+    showToast('⚠️ Drag at least one signal into the work area','error');
     return;
   }
   if(videoIdx < 0){
-    showToast('⚠️ Sélectionnez une vidéo scénario','error');
+    showToast('⚠️ Select a scenario video','error');
     return;
   }
 
@@ -2406,7 +2542,7 @@ function builderConfirmAndLaunch(){
   tv.scenario = sc.name;
   testVectors.push(tv);
 
-  showToast(`✅ Vecteur créé pour ${sc.name}`,'success');
+  showToast(`✅ Vector created for ${sc.name}`,'success');
   closeBuilder();
   go(4);
   openScenarioDetail(videoIdx);
@@ -2416,7 +2552,7 @@ function selectStrategy(n){
   strategy=n;
   document.getElementById('str0').classList.toggle('selected',n===0);
   document.getElementById('str1').classList.toggle('selected',n===1);
-  // Mes propres tests → directement l'import CSV (plus de sous-choix)
+  // My own tests → directement l'import CSV (plus de sous-choix)
   document.getElementById('sub-upload-card').style.display    = n===0?'block':'none';
   document.getElementById('scenarios-list-card').style.display= (n===0||n===1)?'block':'none';
   // IA → afficher le bouton de génération
@@ -2441,19 +2577,19 @@ function setAiStatus(type, message, progress){
 }
 
 async function generateTestsWithAI(){
-  if(!PROJECT_ID && !DEMO){ showToast('⚠️ Crée d\'abord un projet','error'); return; }
+  if(!PROJECT_ID && !DEMO){ showToast('⚠️ Create a project first','error'); return; }
 
   const btn = document.getElementById('btn-ai-generate');
   btn.disabled = true;
-  setAiStatus('running','Démarrage du job de génération...',5);
+  setAiStatus('running','Starting generation job...',5);
 
   if(DEMO){
     // Simulation — utile pour tester le flow sans backend Bedrock déployé
     await sleep(800);  setAiStatus('running','Lecture de l\'interface I/O...',20);
-    await sleep(1000); setAiStatus('running','Génération MC/DC...',35);
+    await sleep(1000); setAiStatus('running','MC/DC generation...',35);
     await sleep(1000); setAiStatus('running','Indexation RAG...',50);
-    await sleep(1500); setAiStatus('running','Génération via Claude (Bedrock)...',75);
-    await sleep(1200); setAiStatus('running','Conversion des scénarios...',90);
+    await sleep(1500); setAiStatus('running','Generation via Claude (Bedrock)...',75);
+    await sleep(1200); setAiStatus('running','Converting scenarios...',90);
     await sleep(600);
     const fakeVectors = [
       {scenario:'MCDC_BASE', vehicle_speed:'54', system_ct:'1', expected_System_Active:'1'},
@@ -2462,8 +2598,8 @@ async function generateTestsWithAI(){
     ];
     testVectors = fakeVectors;
     buildScenariosFromTestVectors();
-    setAiStatus('done', `✅ ${fakeVectors.length} tests générés (simulation)`, 100);
-    showToast(`✅ ${fakeVectors.length} tests générés`,'success');
+    setAiStatus('done', `✅ ${fakeVectors.length} tests generated (simulation)`, 100);
+    showToast(`✅ ${fakeVectors.length} tests generated`,'success');
     renderAIGeneratedTable();
     renderScenarioList();
     btn.disabled = false;
@@ -2480,7 +2616,7 @@ async function generateTestsWithAI(){
     if(data.body && typeof data.body==='string') data = JSON.parse(data.body);
     if(!data.job_id) throw new Error('job_id manquant');
 
-    setAiStatus('running','Job lancé — génération en cours (~1-3 min)...',15);
+    setAiStatus('running','Job started — generation in progress (~1-3 min)...',15);
     await pollGenerateStatus(data.job_id);
 
   }catch(e){
@@ -2522,7 +2658,7 @@ function renderAIGeneratedTable(){
 // ── Téléchargement des tests générés au format CSV ──
 function downloadAIGeneratedTests(){
   if(!testVectors || testVectors.length === 0){
-    showToast('⚠️ Aucun test à télécharger','error');
+    showToast('⚠️ No test to download','error');
     return;
   }
 
@@ -2553,7 +2689,7 @@ function downloadAIGeneratedTests(){
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 
-  showToast('✅ Fichier CSV téléchargé','success');
+  showToast('✅ CSV file downloaded','success');
 }
 
 async function pollGenerateStatus(jobId){
@@ -2572,22 +2708,22 @@ async function pollGenerateStatus(jobId){
         const result = data.result || {};
         testVectors  = result.test_vectors || [];
         buildScenariosFromTestVectors();
-        setAiStatus('done', `✅ ${result.total || testVectors.length} tests générés (${result.requirements_count||0} exigences, ${result.units_count||0} unités${result.untestable_count?', '+result.untestable_count+' non testable(s)':''})`, 100);
-        showToast(`✅ ${testVectors.length} tests générés`,'success');
+        setAiStatus('done', `✅ ${result.total || testVectors.length} tests generated (${result.requirements_count||0} requirements, ${result.units_count||0} units${result.untestable_count?', '+result.untestable_count+' untestable':''})`, 100);
+        showToast(`✅ ${testVectors.length} tests generated`,'success');
         renderAIGeneratedTable();
         renderScenarioList();
         return;
 
       } else if(data.status === 'FAILED'){
-        setAiStatus('failed', '❌ '+(data.message||'Échec de la génération'), 0);
-        showToast('❌ Génération échouée','error',6000);
+        setAiStatus('failed', '❌ '+(data.message||'Generation failed'), 0);
+        showToast('❌ Generation failed','error',6000);
         return;
       }
     }catch(e){
       console.warn('[POLL AI]', e.message);
     }
   }
-  setAiStatus('failed','⏱ Timeout après 12 min',0);
+  setAiStatus('failed','⏱ Timeout after 12 min',0);
 }
 
 function selectSubMode(mode){
@@ -2610,7 +2746,7 @@ let manDynValues={};
 function manPopulateVideoSelect(){
   const sel=document.getElementById('man-sc-video');
   if(!sel) return;
-  sel.innerHTML='<option value="">— Sélectionner une vidéo uploadée —</option>';
+  sel.innerHTML='<option value="">— Select an uploaded video —</option>';
   scenarios.forEach((sc,i)=>{
     const opt=document.createElement('option');
     opt.value=i; opt.textContent=`SC${i+1} — ${sc.name}`;
@@ -2619,21 +2755,21 @@ function manPopulateVideoSelect(){
 }
 
 // ── Bibliothèque de signaux génériques suggérés (fallback si aucun I/O uploadé)
-// Ces signaux couvrent les patterns communs ADAS (LPA, ACC, AEB, etc.)
-// et servent uniquement de point de départ — le testeur choisit ce qu'il veut.
+// These signals cover common ADAS patterns (LPA, ACC, AEB, etc.)
+// and serve only as a starting point — the tester chooses what they want.
 const GENERIC_SIGNAL_LIBRARY = [
-  {signal_name:'vehicle_speed',        direction:'INPUT',  data_type:'float',   min_value:0,   max_value:200, unit:'km/h', description:"Vitesse véhicule injectée depuis le capteur de roue via CAN"},
-  {signal_name:'system_ct',            direction:'INPUT',  data_type:'boolean', min_value:0,   max_value:1,   unit:'',     description:"Activation manuelle du système par le conducteur (bouton)"},
-  {signal_name:'turn_signal_left',     direction:'INPUT',  data_type:'boolean', min_value:0,   max_value:1,   unit:'',     description:"Clignotant gauche actif"},
-  {signal_name:'turn_signal_right',    direction:'INPUT',  data_type:'boolean', min_value:0,   max_value:1,   unit:'',     description:"Clignotant droit actif"},
-  {signal_name:'brake_pedal_pressed',  direction:'INPUT',  data_type:'boolean', min_value:0,   max_value:1,   unit:'',     description:"Pédale de frein actionnée par le conducteur"},
-  {signal_name:'accelerator_override', direction:'INPUT',  data_type:'boolean', min_value:0,   max_value:1,   unit:'',     description:"Conducteur appuie sur l'accélérateur (override manuel)"},
-  {signal_name:'distance_to_target',   direction:'INPUT',  data_type:'float',   min_value:0,   max_value:250, unit:'m',    description:"Distance à la cible/obstacle mesurée par le capteur"},
-  {signal_name:'target_detected',      direction:'INPUT',  data_type:'boolean', min_value:0,   max_value:1,   unit:'',     description:"Cible/obstacle détecté par le capteur avant"},
-  {signal_name:'System_Active',        direction:'OUTPUT', data_type:'boolean', min_value:0,   max_value:1,   unit:'',     description:"Système actif et en surveillance (System_State = 1)"},
-  {signal_name:'Warning_Left',         direction:'OUTPUT', data_type:'boolean', min_value:0,   max_value:1,   unit:'',     description:"Alerte / écart détecté côté gauche"},
-  {signal_name:'Warning_Right',        direction:'OUTPUT', data_type:'boolean', min_value:0,   max_value:1,   unit:'',     description:"Alerte / écart détecté côté droit"},
-  {signal_name:'System_State',         direction:'OUTPUT', data_type:'int',     min_value:0,   max_value:4,   unit:'',     description:"État système (valeurs selon le composant testé)"}
+  {signal_name:'vehicle_speed',        direction:'INPUT',  data_type:'float',   min_value:0,   max_value:200, unit:'km/h', description:"Vehicle speed injected from the wheel sensor via CAN"},
+  {signal_name:'system_ct',            direction:'INPUT',  data_type:'boolean', min_value:0,   max_value:1,   unit:'',     description:"Manual system activation by the driver (button)"},
+  {signal_name:'turn_signal_left',     direction:'INPUT',  data_type:'boolean', min_value:0,   max_value:1,   unit:'',     description:"Left turn signal active"},
+  {signal_name:'turn_signal_right',    direction:'INPUT',  data_type:'boolean', min_value:0,   max_value:1,   unit:'',     description:"Right turn signal active"},
+  {signal_name:'brake_pedal_pressed',  direction:'INPUT',  data_type:'boolean', min_value:0,   max_value:1,   unit:'',     description:"Brake pedal pressed by the driver"},
+  {signal_name:'accelerator_override', direction:'INPUT',  data_type:'boolean', min_value:0,   max_value:1,   unit:'',     description:"Driver pressing the accelerator (manual override)"},
+  {signal_name:'distance_to_target',   direction:'INPUT',  data_type:'float',   min_value:0,   max_value:250, unit:'m',    description:"Distance to target/obstacle measured by the sensor"},
+  {signal_name:'target_detected',      direction:'INPUT',  data_type:'boolean', min_value:0,   max_value:1,   unit:'',     description:"Target/obstacle detected by the front sensor"},
+  {signal_name:'System_Active',        direction:'OUTPUT', data_type:'boolean', min_value:0,   max_value:1,   unit:'',     description:"System active and monitoring (System_State = 1)"},
+  {signal_name:'Warning_Left',         direction:'OUTPUT', data_type:'boolean', min_value:0,   max_value:1,   unit:'',     description:"Warning / deviation detected on the left side"},
+  {signal_name:'Warning_Right',        direction:'OUTPUT', data_type:'boolean', min_value:0,   max_value:1,   unit:'',     description:"Warning / deviation detected on the right side"},
+  {signal_name:'System_State',         direction:'OUTPUT', data_type:'int',     min_value:0,   max_value:4,   unit:'',     description:"System state (values depend on the component under test)"}
 ];
 
 async function manBuildDynamicSignals() {
@@ -2664,7 +2800,7 @@ async function manBuildDynamicSignals() {
     }
 
     renderDynSignalControls(signals);
-    showToast(`✅ ${signals.length} signaux chargés depuis DynamoDB`, 'success');
+    showToast(`✅ ${signals.length} signals loaded from DynamoDB`, 'success');
 
   } catch(e) {
     console.warn('[SIGNALS]', e.message);
@@ -2683,17 +2819,17 @@ function showGenericSignalSuggestions(){
     <div style="grid-column:1/-1;padding:10px 12px;background:rgba(255,181,71,.06);
       border:1px solid rgba(255,181,71,.2);border-radius:8px;margin-bottom:10px">
       <div style="font-size:11px;font-weight:700;color:var(--amber);margin-bottom:4px">
-        ⚠️ Aucun fichier I/O uploadé pour ce projet
+        ⚠️ No I/O file uploaded for this project
       </div>
       <div style="font-size:10px;color:var(--text2);line-height:1.5">
-        Sélectionnez ci-dessous les signaux génériques que vous voulez utiliser pour ce test,
-        ou retournez à l'étape 2 pour uploader votre vraie matrice I/O (.csv/.xlsx/.arxml).
+        Select the generic signals below that you want to use for this test,
+        or go back to step 2 to upload your real I/O matrix (.csv/.xlsx/.arxml).
       </div>
     </div>`;
 
   html += `<div style="grid-column:1/-1;font-size:9px;font-weight:700;
     color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;
-    margin-bottom:4px">Signaux d'entrée suggérés</div>`;
+    margin-bottom:4px">Suggested input signals</div>`;
   inputs.forEach(sig => {
     html += `
       <label style="display:flex;align-items:flex-start;gap:8px;background:rgba(255,255,255,.03);
@@ -2708,7 +2844,7 @@ function showGenericSignalSuggestions(){
 
   html += `<div style="grid-column:1/-1;font-size:9px;font-weight:700;
     color:var(--green);letter-spacing:1.5px;text-transform:uppercase;
-    margin:10px 0 4px">Signaux de sortie suggérés</div>`;
+    margin:10px 0 4px">Suggested output signals</div>`;
   outputs.forEach(sig => {
     html += `
       <label style="display:flex;align-items:flex-start;gap:8px;background:rgba(255,255,255,.03);
@@ -2726,7 +2862,7 @@ function showGenericSignalSuggestions(){
       <button onclick="confirmGenericSignalSelection()"
         style="width:100%;padding:9px;background:var(--accent);border:none;border-radius:7px;
           color:#000;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--mono)">
-        ✓ Ajouter les signaux sélectionnés
+        ✓ Add selected signals
       </button>
     </div>`;
 
@@ -2738,12 +2874,12 @@ function confirmGenericSignalSelection(){
   const checked = Array.from(document.querySelectorAll('#man-dynamic-signals .sugg-check:checked'))
     .map(cb => cb.value);
   if(checked.length === 0){
-    showToast('⚠️ Sélectionnez au moins un signal','error');
+    showToast('⚠️ Select at least one signal','error');
     return;
   }
   const selected = GENERIC_SIGNAL_LIBRARY.filter(s => checked.includes(s.signal_name));
   renderDynSignalControls(selected);
-  showToast(`✅ ${selected.length} signal(aux) ajouté(s)`,'success');
+  showToast(`✅ ${selected.length} signal(s) added`,'success');
 }
 
 // ── Construit les contrôles interactifs (sliders/toggles) à partir d'une liste de signaux.
@@ -2761,7 +2897,7 @@ function renderDynSignalControls(signals){
   if(inputs.length > 0) {
     html += `<div style="grid-column:1/-1;font-size:9px;font-weight:700;
       color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;
-      margin-bottom:4px">SIGNAUX ENTRÉE</div>`;
+      margin-bottom:4px">INPUT SIGNALS</div>`;
 
     inputs.forEach(sig => {
       const min  = parseFloat(sig.min_value) || 0;
@@ -2818,7 +2954,7 @@ function renderDynSignalControls(signals){
   if(outputs.length > 0) {
     html += `<div style="grid-column:1/-1;font-size:9px;font-weight:700;
       color:var(--green);letter-spacing:1.5px;text-transform:uppercase;
-      margin:10px 0 4px">SORTIES ATTENDUES</div>`;
+      margin:10px 0 4px">EXPECTED OUTPUTS</div>`;
 
     outputs.forEach(sig => {
       manDynValues[`expected_${sig.signal_name}`] = '0';
@@ -2916,11 +3052,11 @@ function manConfirmAndLaunch(){
   const videoIdx=parseInt(videoSel?.value??'-1');
 
   if(Object.keys(manDynValues).length===0){
-    showToast('⚠️ Configurez au moins un signal avant de lancer','error');
+    showToast('⚠️ Configure at least one signal before launching','error');
     return;
   }
   if(videoIdx<0){
-    showToast('⚠️ Sélectionnez une vidéo scénario','error');
+    showToast('⚠️ Select a scenario video','error');
     return;
   }
 
@@ -2934,7 +3070,7 @@ function manConfirmAndLaunch(){
   testVectors=testVectors.filter(v=>v.scenario!==sc.name);
   tv.scenario=sc.name;
   testVectors.push(tv);
-  showToast(`✅ Vecteur créé pour ${sc.name}`,'success');
+  showToast(`✅ Vector created for ${sc.name}`,'success');
   go(4);
   openScenarioDetail(videoIdx);
 }
@@ -2960,7 +3096,7 @@ function addLog(msg,type=''){
 async function uploadMultipleFiles(input, type){
   const files = Array.from(input.files);
   if(!files.length) return;
-  if(!PROJECT_ID){ showToast('⚠️ Crée d\'abord un projet','error'); return; }
+  if(!PROJECT_ID){ showToast('⚠️ Create a project first','error'); return; }
 
   // Catégorisation visuelle uniquement — tous les fichiers vont dans le
   // même dossier S3 plat projects/{id}/software/, comme avant.
@@ -2979,7 +3115,7 @@ async function uploadMultipleFiles(input, type){
         <circle cx="12" cy="12" r="10"/>
       </svg>
       <span>⏳ ${file.name}</span>
-      <span class="file-status" style="color:var(--amber)">EN COURS</span>
+      <span class="file-status" style="color:var(--amber)">RUNNING</span>
     `;
     list.appendChild(itemEl);
 
@@ -3026,21 +3162,21 @@ async function uploadMultipleFiles(input, type){
           <line x1="6" y1="6" x2="18" y2="18"/>
         </svg>
         <span>${file.name}</span>
-        <span class="file-status" style="color:var(--red)">❌ ÉCHEC</span>
+        <span class="file-status" style="color:var(--red)">❌ FAILED</span>
       `;
     }
   }
 
-  showToast(`✅ ${files.length} fichier(s) uploadé(s)`,'success');
+  showToast(`✅ ${files.length} file(s) uploaded`,'success');
 }
 // ══════════════════════════════════════════════
 // COMPILER LE FIRMWARE
 // ══════════════════════════════════════════════
 
 async function compileFirmware(){
-  if(!PROJECT_ID){ showToast('⚠️ Crée d\'abord un projet','error'); return; }
+  if(!PROJECT_ID){ showToast('⚠️ Create a project first','error'); return; }
   if(scenarios.length === 0){
-    showToast('⚠️ Uploade d\'abord des vidéos (étape 2)','error'); return;
+    showToast('⚠️ Upload videos first (step 2)','error'); return;
   }
 
   const btn = document.getElementById('btn-compile');
@@ -3057,15 +3193,15 @@ async function compileFirmware(){
   // Afficher la barre de statut
   const bar = document.getElementById('build-status-bar');
   bar.style.display = 'block';
-  setBuildStatus('building', 'CodeBuild démarre...', 10);
+  setBuildStatus('building', 'CodeBuild starting...', 10);
 
   if(DEMO){
     // Simulation démo
-    await sleep(1000); setBuildStatus('building','Téléchargement sources C...',20);
+    await sleep(1000); setBuildStatus('building','Downloading C sources...',20);
     await sleep(1500); setBuildStatus('building','Compilation gcc en cours...',50);
     await sleep(1500); setBuildStatus('building','Docker build image...',75);
     await sleep(1500); setBuildStatus('building','Push vers ECR...',90);
-    await sleep(1000); setBuildStatus('ready','✅ Firmware compilé — image ECR prête',100);
+    await sleep(1000); setBuildStatus('ready','✅ Firmware compiled — ECR image ready',100);
     buildReady = true;
     enableLaunchButton();
     btn.disabled = false;
@@ -3091,8 +3227,8 @@ async function compileFirmware(){
 
     if(!data.build_id) throw new Error('build_id manquant');
 
-    setBuildStatus('building', `Build lancé — ${data.build_id.split(':').pop().slice(0,8)}...`, 15);
-    showToast('🔨 Compilation démarrée (~2-3 min)','info');
+    setBuildStatus('building', `Build started — ${data.build_id.split(':').pop().slice(0,8)}...`, 15);
+    showToast('🔨 Compilation started (~2-3 min)','info');
 
     // Polling statut build
     await pollBuildStatus();
@@ -3107,7 +3243,7 @@ async function compileFirmware(){
         <polyline points="16 18 22 12 16 6"/>
         <polyline points="8 6 2 12 8 18"/>
       </svg>
-      Réessayer
+      Retry
     `;
   }
 }
@@ -3140,9 +3276,9 @@ async function pollBuildStatus(){
 
       if(status === 'BUILDING'){
         const phaseLabels = {
-          'DOWNLOAD_SOURCE': 'Téléchargement des sources...',
-          'INSTALL':         'Installation des dépendances...',
-          'PRE_BUILD':       'Téléchargement depuis S3...',
+          'DOWNLOAD_SOURCE': 'Downloading sources...',
+          'INSTALL':         'Installing dependencies...',
+          'PRE_BUILD':       'Downloading from S3...',
           'BUILD':           'Compilation gcc + Docker build...',
           'POST_BUILD':      'Push image vers ECR...',
           'UPLOAD_ARTIFACTS':'Finalisation...'
@@ -3150,7 +3286,7 @@ async function pollBuildStatus(){
         setBuildStatus('building', phaseLabels[phase] || 'Build en cours...', progress);
 
       } else if(status === 'READY'){
-        setBuildStatus('ready','✅ Firmware compilé — image ECR prête', 100);
+        setBuildStatus('ready','✅ Firmware compiled — ECR image ready', 100);
         buildReady = true;
         enableLaunchButton();
         btn.disabled = false;
@@ -3161,14 +3297,14 @@ async function pollBuildStatus(){
           </svg>
           ✅ Recompiler
         `;
-        showToast('✅ Firmware prêt — tu peux lancer les tests','success');
+        showToast('✅ Firmware ready — you can launch the tests','success');
         return;
 
       } else if(status === 'FAILED'){
-        setBuildStatus('failed','❌ Compilation échouée — vérifie les sources C', 0);
+        setBuildStatus('failed','❌ Compilation failed — check the C sources', 0);
         btn.disabled = false;
-        btn.innerHTML = `Réessayer`;
-        showToast('❌ Build échoué','error',6000);
+        btn.innerHTML = `Retry`;
+        showToast('❌ Build failed','error',6000);
         return;
       }
 
@@ -3217,10 +3353,10 @@ function enableLaunchButton(){
 // ══════════════════════════════════════════════
 function launchAllTests(){
   if(!buildReady && !DEMO){
-    showToast('⚠️ Compile d\'abord le firmware','error'); return;
+    showToast('⚠️ Compile the firmware first','error'); return;
   }
   if(scenarios.length === 0){
-    showToast('⚠️ Aucun scénario disponible','error'); return;
+    showToast('⚠️ No scenario available','error'); return;
   }
   go(4);
   launchAllTestsBulk();
@@ -3240,9 +3376,9 @@ function clearLog(){ document.getElementById('bench-log-body').innerHTML=''; }
   </div>
 
   <div class="builder-meta">
-    <input type="text" id="builder-sc-name" placeholder="Nom du scénario (ex: scene_nominal_custom)" style="flex:1"/>
+    <input type="text" id="builder-sc-name" placeholder="Scenario name (e.g. scene_nominal_custom)" style="flex:1"/>
     <select id="builder-sc-video" style="width:260px">
-      <option value="">— Vidéo scénario associée —</option>
+      <option value="">— Associated scenario video —</option>
     </select>
   </div>
 
@@ -3255,13 +3391,13 @@ function clearLog(){ document.getElementById('bench-log-body').innerHTML=''; }
     <div class="builder-canvas" id="builder-canvas"
          ondragover="event.preventDefault()" ondrop="builderDrop(event)">
       <div class="canvas-hint" id="canvas-hint">
-        Glissez un signal ici<br/>pour créer un contrôle
+        Drag a signal here<br/>to create a control
       </div>
     </div>
   </div>
 
   <div class="btn-row">
-    <button class="btn-secondary" onclick="closeBuilder()">Annuler</button>
+    <button class="btn-secondary" onclick="closeBuilder()">Cancel</button>
     <button class="btn-launch" onclick="builderConfirmAndLaunch()">
       ▶ Confirmer et passer au test
     </button>
@@ -3276,8 +3412,8 @@ function clearLog(){ document.getElementById('bench-log-body').innerHTML=''; }
 
   <div class="scm-header">
     <div>
-      <div class="scm-title" id="scm-title">Configurer le scénario</div>
-      <div class="scm-sub">Choisissez comment définir les paramètres de ce test</div>
+      <div class="scm-title" id="scm-title">Configure scenario</div>
+      <div class="scm-sub">Choose how to define this test's parameters</div>
     </div>
     <button class="scm-close" onclick="closeScModal()">✕</button>
   </div>
@@ -3286,13 +3422,13 @@ function clearLog(){ document.getElementById('bench-log-body').innerHTML=''; }
   <div class="scm-choice-grid">
     <div class="scm-choice" id="scm-card-upload" onclick="scSelectMode('upload')">
       <div class="scm-choice-icon">📂</div>
-      <div class="scm-choice-label">Importer un CSV</div>
-      <div class="scm-choice-sub">Charger un vecteur de test existant</div>
+      <div class="scm-choice-label">Import a CSV</div>
+      <div class="scm-choice-sub">Load an existing test vector</div>
     </div>
     <div class="scm-choice" id="scm-card-manual" onclick="scSelectMode('manual')">
       <div class="scm-choice-icon">🎛</div>
-      <div class="scm-choice-label">Configurer manuellement</div>
-      <div class="scm-choice-sub">Ajuster les signaux via des contrôles interactifs</div>
+      <div class="scm-choice-label">Configure manually</div>
+      <div class="scm-choice-sub">Adjust signals via interactive controls</div>
     </div>
   </div>
 
@@ -3302,12 +3438,12 @@ function clearLog(){ document.getElementById('bench-log-body').innerHTML=''; }
   <div class="scm-panel" id="scm-panel-upload">
     <div class="scm-upload-zone" onclick="document.getElementById('scm-csv-input').click()">
       <div class="scm-upload-icon">📎</div>
-      <div class="scm-upload-label">Cliquez pour importer un fichier CSV</div>
+      <div class="scm-upload-label">Click to import a CSV file</div>
       <div class="scm-upload-sub">Format : scenario, speed, lpa_ct, turn_signal, expected_*</div>
       <input type="file" id="scm-csv-input" accept=".csv" style="display:none" onchange="scOnCsvLoad(event)"/>
     </div>
     <div class="scm-file-ok" id="scm-file-ok">
-      <div style="font-size:11px;font-weight:700;color:#22c55e;margin-bottom:4px">✅ Fichier chargé</div>
+      <div style="font-size:11px;font-weight:700;color:#22c55e;margin-bottom:4px">✅ File loaded</div>
       <div style="font-size:10px;color:var(--text2)" id="scm-file-info"></div>
     </div>
   </div>
@@ -3317,18 +3453,18 @@ function clearLog(){ document.getElementById('bench-log-body').innerHTML=''; }
 
     <!-- Signaux dynamiques (issus du fichier I/O uploadé) -->
     <div id="scm-dynamic-signals-wrap">
-      <div class="scm-section-title">Signaux détectés depuis votre fichier I/O</div>
+      <div class="scm-section-title">Signals detected from your I/O file</div>
       <div class="scm-signals-grid" id="scm-dynamic-signals"></div>
     </div>
 
     <!-- Paramètres standards toujours présents -->
-    <div class="scm-section-title">Paramètres d'entrée</div>
+    <div class="scm-section-title">Input parameters</div>
     <div class="scm-grid">
 
       <!-- Speed -->
       <div class="scm-group full">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-          <span class="scm-label">Vitesse véhicule</span>
+          <span class="scm-label">Vehicle speed</span>
           <span class="scm-val" id="scm-speed-lbl">54 km/h</span>
         </div>
         <div class="scm-slider-row">
@@ -3341,7 +3477,7 @@ function clearLog(){ document.getElementById('bench-log-body').innerHTML=''; }
 
       <!-- LPA -->
       <div class="scm-group">
-        <span class="scm-label">LPA Activé</span>
+        <span class="scm-label">LPA Active</span>
         <div class="scm-toggle-group">
           <button class="scm-toggle on"  id="scm-lpa-on"  onclick="scSetLPA(1)">✓ ON</button>
           <button class="scm-toggle"     id="scm-lpa-off" onclick="scSetLPA(0)">✗ OFF</button>
@@ -3350,7 +3486,7 @@ function clearLog(){ document.getElementById('bench-log-body').innerHTML=''; }
 
       <!-- Turn signal -->
       <div class="scm-group">
-        <span class="scm-label">Clignotant</span>
+        <span class="scm-label">Turn signal</span>
         <div class="scm-toggle-group">
           <button class="scm-toggle off" id="scm-turn-0" onclick="scSetTurn(0)">✗ OFF</button>
           <button class="scm-toggle"     id="scm-turn-1" onclick="scSetTurn(1)">← G</button>
@@ -3360,8 +3496,8 @@ function clearLog(){ document.getElementById('bench-log-body').innerHTML=''; }
 
     </div>
 
-    <!-- Sorties attendues -->
-    <div class="scm-section-title">Sorties attendues (verdict)</div>
+    <!-- Outputs attendues -->
+    <div class="scm-section-title">Expected outputs (verdict)</div>
     <div class="scm-exp-grid">
       <div class="scm-exp-item">
         <div class="scm-exp-label">LPA_Active</div>
@@ -3388,7 +3524,7 @@ function clearLog(){ document.getElementById('bench-log-body').innerHTML=''; }
 
     <!-- Résumé temps réel -->
     <div class="scm-resume" id="scm-resume">
-      <div class="scm-resume-title">Vecteur de test généré</div>
+      <div class="scm-resume-title">Generated test vector</div>
       <div class="scm-resume-grid" id="scm-resume-grid"></div>
     </div>
 
@@ -3396,7 +3532,7 @@ function clearLog(){ document.getElementById('bench-log-body').innerHTML=''; }
 
   <!-- Footer -->
   <div class="scm-footer">
-    <button class="scm-btn scm-btn-cancel" onclick="closeScModal()">Annuler</button>
+    <button class="scm-btn scm-btn-cancel" onclick="closeScModal()">Cancel</button>
     <button class="scm-btn scm-btn-confirm" id="scm-btn-go" onclick="scConfirm()" disabled>
       Lancer le test →
     </button>
@@ -3579,7 +3715,7 @@ function scOnCsvLoad(e) {
     rows.forEach(r => { if (!r.scenario) r.scenario = sc.name; });
     testVectors = testVectors.filter(v => v.scenario !== sc.name);
     testVectors.push(...rows);
-    showToast(`✅ ${rows.length} vecteur(s) chargé(s) pour ${sc.name}`, 'success');
+    showToast(`✅ ${rows.length} vector(s) loaded for ${sc.name}`, 'success');
   };
   reader.readAsText(file);
   scCheckCanGo();
@@ -3615,7 +3751,7 @@ function scConfirm() {
     testVectors = testVectors.filter(v => v.scenario !== sc.name);
     testVectors.push(tv);
     sc.test_vector = tv;
-    showToast(`✅ Vecteur configuré pour ${sc.name}`, 'success');
+    showToast(`✅ Vector configured for ${sc.name}`, 'success');
   }
 
   closeScModal();
