@@ -832,7 +832,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
             <polyline points="16 18 22 12 16 6"/>
             <polyline points="8 6 2 12 8 18"/>
           </svg>
-          Compiler le firmware
+          Compile firmware
         </button>
 
         <!-- Bouton 2 : Lancer (désactivé jusqu'au build OK) -->
@@ -843,7 +843,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
                stroke="currentColor" stroke-width="2.5">
             <polygon points="5 3 19 12 5 21 5 3"/>
           </svg>
-          Lancer les tests
+          Run tests
         </button>
       </div>
     </div>
@@ -2087,16 +2087,25 @@ function closeScenarioDetail(){
 // puis texte normalisé pour les booléens ("true"/"1", "false"/"0").
 function valuesMatch(exp, act){
   if(act === null || act === undefined) return false;
-  const expNum = parseFloat(exp), actNum = parseFloat(act);
-  if(!isNaN(expNum) && !isNaN(actNum) && String(exp).trim() !== '' && String(act).trim() !== ''){
+
+  // Convertit d'abord "true"/"false" en 1/0 pour permettre une vraie
+  // comparaison numérique contre "1.0"/"0.0" — l'ancienne version comparait
+  // les chaînes après conversion partielle ("1" !== "1.0"), causant des
+  // FAIL alors que les valeurs sont identiques.
+  function toNum(v){
+    const s = String(v).trim().toLowerCase();
+    if(s === 'true')  return 1;
+    if(s === 'false') return 0;
+    const n = parseFloat(s);
+    return (s !== '' && !isNaN(n)) ? n : null;
+  }
+
+  const expNum = toNum(exp), actNum = toNum(act);
+  if(expNum !== null && actNum !== null){
     return expNum === actNum;
   }
-  const boolEquiv = {true:'1', false:'0'};
-  let expNorm = String(exp).trim().toLowerCase();
-  let actNorm = String(act).trim().toLowerCase();
-  expNorm = boolEquiv[expNorm] ?? expNorm;
-  actNorm = boolEquiv[actNorm] ?? actNorm;
-  return expNorm === actNorm;
+  // Repli texte pur (valeurs non numériques, ex: catégories)
+  return String(exp).trim().toLowerCase() === String(act).trim().toLowerCase();
 }
 
 function renderDetailGeneric(idx){
@@ -2287,7 +2296,19 @@ function loadTestFile(input){
   reader.onload=e=>{
     const lines=e.target.result.trim().split('\n');
     const headers=lines[0].split(',');
-    testVectors=lines.slice(1).map(l=>{ const v=l.split(','); return Object.fromEntries(headers.map((h,i)=>[h.trim(),v[i]?.trim()])); });
+    testVectors=lines.slice(1).map(l=>{
+      const v=l.split(',');
+      const obj = {};
+      headers.forEach((h,i)=>{
+        const key = h.trim();
+        const val = v[i]?.trim();
+        // Une cellule expected_* vide veut dire "pas testé ici" — ne pas
+        // l'ajouter du tout (sinon comparaison contre "" = FAIL artificiel)
+        if(key.startsWith('expected_') && (val === undefined || val === '')) return;
+        obj[key] = val;
+      });
+      return obj;
+    });
     renderTVPreview(headers,testVectors);
     buildScenariosFromTestVectors();
     showToast(`✅ ${testVectors.length} vectors loaded`,'success');
