@@ -871,7 +871,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           </div>
           <button class="btn-launch" id="btn-launch-parallel" onclick="launchAllTestsBulk()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Lancer tous les tests
+            Run all tests
           </button>
         </div>
 
@@ -2128,7 +2128,7 @@ function renderDetailGeneric(idx){
   // vidéo correspond bien à l'intention du test pendant l'exécution
   const description = result.description || tv._description || tv.description || '';
   document.getElementById('detail-description').textContent =
-    description || 'Aucune description disponible pour ce test';
+    description || 'No description available for this test';
 
   // Inputs — tout ce qui n'est pas expected_* ni 'scenario'
   const inputsEl = document.getElementById('detail-inputs');
@@ -3286,7 +3286,7 @@ async function compileFirmware(){
          style="animation:spin .8s linear infinite">
       <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
     </svg>
-    Compilation en cours...
+    Compilation in progress...
   `;
 
   // Afficher la barre de statut
@@ -3297,9 +3297,9 @@ async function compileFirmware(){
   if(DEMO){
     // Simulation démo
     await sleep(1000); setBuildStatus('building','Downloading C sources...',20);
-    await sleep(1500); setBuildStatus('building','Compilation gcc en cours...',50);
-    await sleep(1500); setBuildStatus('building','Docker build image...',75);
-    await sleep(1500); setBuildStatus('building','Push vers ECR...',90);
+    await sleep(1500); setBuildStatus('building','gcc compilation in progress...',50);
+    await sleep(1500); setBuildStatus('building','Docker image build...',75);
+    await sleep(1500); setBuildStatus('building','Pushing to ECR...',90);
     await sleep(1000); setBuildStatus('ready','✅ Firmware compiled — ECR image ready',100);
     buildReady = true;
     enableLaunchButton();
@@ -3309,7 +3309,7 @@ async function compileFirmware(){
            stroke="currentColor" stroke-width="2">
         <polyline points="20 6 9 17 4 12"/>
       </svg>
-      Recompiler
+      Recompile
     `;
     return;
   }
@@ -3394,7 +3394,7 @@ async function pollBuildStatus(){
                stroke="currentColor" stroke-width="2">
             <polyline points="20 6 9 17 4 12"/>
           </svg>
-          ✅ Recompiler
+          ✅ Recompile
         `;
         showToast('✅ Firmware ready — you can launch the tests','success');
         return;
