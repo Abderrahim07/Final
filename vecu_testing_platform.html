@@ -491,11 +491,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="step-sep"></div>
     <div class="step-item" id="nav1"><div class="step-num" id="num1">2</div><div class="step-label">Uploads</div></div>
     <div class="step-sep"></div>
-    <div class="step-item" id="nav2"><div class="step-num" id="num2">3</div><div class="step-label">Tests &amp; Scenarios</div></div>
+    <div class="step-item" id="nav2"><div class="step-num" id="num2">3</div><div class="step-label">Test Configuration</div></div>
     <div class="step-sep"></div>
-    <div class="step-item" id="nav3"><div class="step-num" id="num3">4</div><div class="step-label">Compilation</div></div>
+    <div class="step-item" id="nav3"><div class="step-num" id="num3">4</div><div class="step-label">Firmware Build</div></div>
     <div class="step-sep"></div>
-    <div class="step-item" id="nav4"><div class="step-num" id="num4">5</div><div class="step-label">Test Bench</div></div>
+    <div class="step-item" id="nav4"><div class="step-num" id="num4">5</div><div class="step-label">Execution</div></div>
     <div class="step-sep"></div>
     <div class="step-item" id="nav5"><div class="step-num" id="num5">6</div><div class="step-label">Dashboard</div></div>
   </div>
@@ -684,12 +684,19 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         <span class="file-status">✓ LOADED</span>
       </div>
       <div style="margin-top:12px;padding:12px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r)">
-        <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Expected CSV format</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.8px">Expected CSV format</div>
+          <button class="btn-secondary" onclick="downloadCSVTemplate()" style="padding:5px 12px;font-size:10px">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download template for this project
+          </button>
+        </div>
         <div style="font-family:var(--mono);font-size:11px;color:var(--text2);line-height:1.8">
           scenario,vehicle_speed,lateral_offset,expected_torque,expected_warning<br>
           <span style="color:var(--green)">scene_nominal,110,0.0,-0.1,false</span><br>
           <span style="color:var(--amber)">scene_drift_right,110,0.3,-2.5,true</span>
         </div>
+        <div style="font-size:9.5px;color:var(--text3);margin-top:8px">Generic example above — click "Download template" to get a CSV pre-filled with the exact signal names of <em>this</em> project, so column names can't get out of sync with what the runtime expects.</div>
       </div>
       <div id="tv-preview" style="display:none;margin-top:12px">
         <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px">Preview of loaded vectors</div>
@@ -1006,7 +1013,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     </div>
 
     <div class="btn-row">
-      <button class="btn-secondary" onclick="go(3)">← Back to Test Bench</button>
+      <button class="btn-secondary" onclick="go(3)">← Back to Execution</button>
       <button class="btn-primary" onclick="startNewProject()">New project</button>
     </div>
   </div>
@@ -2656,6 +2663,77 @@ function renderAIGeneratedTable(){
 }
 
 // ── Téléchargement des tests générés au format CSV ──
+// ── Modèle CSV pré-rempli avec les vrais signaux du projet ──
+// Évite que le testeur invente des noms de colonnes qui ne correspondent
+// pas aux signaux réels (direction=IMAGE et image_R/G/B exclus — jamais
+// fournis manuellement, toujours calculés au runtime depuis la vidéo).
+async function downloadCSVTemplate(){
+  if(!PROJECT_ID && !DEMO){ showToast('⚠️ Create a project first','error'); return; }
+
+  const IMAGE_DERIVED = new Set(['image_R','image_G','image_B']);
+  let signals = [];
+
+  if(DEMO){
+    signals = GENERIC_SIGNAL_LIBRARY;
+  } else {
+    try{
+      const resp = await apiFetch(`${API}/projects/${PROJECT_ID}/signals`);
+      let data = JSON.parse(await resp.text());
+      if(data.body && typeof data.body === 'string') data = JSON.parse(data.body);
+      signals = data.signals || [];
+    }catch(e){
+      showToast('⚠️ Could not load project signals — check step 2 was completed','error');
+      return;
+    }
+  }
+
+  if(signals.length === 0){
+    showToast('⚠️ No signal found for this project — upload your I/O matrix in step 2 first','error');
+    return;
+  }
+
+  const inputNames = signals
+    .filter(s => s.direction === 'INPUT' && !IMAGE_DERIVED.has(s.signal_name))
+    .map(s => s.signal_name);
+  const outputNames = signals
+    .filter(s => s.direction === 'OUTPUT')
+    .map(s => s.signal_name);
+
+  const headers = ['scenario', ...inputNames, ...outputNames.map(n => `expected_${n}`)];
+
+  // Ligne d'exemple : valeur min pour les entrées, valeur par défaut
+  // raisonnable pour les sorties attendues — juste pour illustrer le format,
+  // à remplacer par de vraies valeurs de test.
+  const exampleRow = ['scene_example', ...signals
+    .filter(s => s.direction === 'INPUT' && !IMAGE_DERIVED.has(s.signal_name))
+    .map(s => s.min_value ?? 0), ...signals
+    .filter(s => s.direction === 'OUTPUT')
+    .map(s => s.data_type === 'boolean' ? 'false' : (s.min_value ?? 0))];
+
+  const escapeCsv = v => {
+    const s = String(v ?? '');
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+  };
+
+  const lines = [
+    headers.join(','),
+    exampleRow.map(escapeCsv).join(','),
+  ];
+  const csvContent = lines.join('\n');
+
+  const blob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `test_vectors_template_${projName || PROJECT_ID || 'project'}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast('✅ Template downloaded — fill in your scenarios, keep the column names as-is','success');
+}
+
 function downloadAIGeneratedTests(){
   if(!testVectors || testVectors.length === 0){
     showToast('⚠️ No test to download','error');
