@@ -1629,9 +1629,9 @@ async function pollVideoGenStatus(jobId){
 
         scenarios.forEach(sc => {
           const entry = manifest[sc.name];
-          if(entry && entry.status === 'Completed' && entry.final_s3_key){
+          if(entry && entry.status === 'Completed' && entry.final_key){
             sc.status = 'video_ready';
-            sc.s3key  = entry.final_s3_key;
+            sc.s3key  = entry.final_key;
           } else {
             sc.status = 'video_failed';
           }
