@@ -932,7 +932,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
     <!-- ═══ VUE DÉTAIL — un scénario, valeurs réelles, générique ═══ -->
     <div id="scenario-detail-view" style="display:none">
-      <button class="btn-secondary" onclick="closeScenarioDetail()" style="margin-bottom:14px">← Back to grid</button>
+      <button class="btn-secondary" id="detail-back-btn" onclick="closeScenarioDetail()" style="margin-bottom:14px">← Back to grid</button>
 
       <div style="display:grid;grid-template-columns:1fr 380px;gap:14px">
 
@@ -1250,6 +1250,7 @@ async function apiFetch(url, options={}){
 let PROJECT_ID = null, projName = '';
 let scenarios  = [];   // [{name, filename, file(File), status, signals, testVector}]
 let activeIdx  = 0;
+let detailOpenedFrom = 4;  // écran d'origine ('Open' cliqué depuis) — permet au bouton retour de ramener au bon endroit (2=Test Config, 4=Execution grid, 5=Dashboard)
 let currentDetailExpected = {};      // expected_* du scénario actuellement ouvert
 let currentDetailFramesDetail = [];  // frames_detail du scénario actuellement ouvert
 let currentSelectedFrameIdx = null;  // index de la frame sélectionnée (null = vue globale)
@@ -1379,6 +1380,7 @@ function go(n){
   });
   window.scrollTo({top:0,behavior:'smooth'});
   if(n===2) refreshScenarioListS3();
+  if(n===5) renderDashboard();
 }
 
 function updatePath(){
@@ -1705,7 +1707,7 @@ function renderScenarioList(){
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         ${statusTag}
-        <button onclick="go(4);openScenarioDetail(${i})"
+        <button onclick="detailOpenedFrom=2;go(4);openScenarioDetail(${i})"
           style="padding:5px 12px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);
                  border-radius:4px;font-family:var(--mono);font-size:10px;color:var(--accent);cursor:pointer">
           ▶ Open
@@ -1764,7 +1766,7 @@ function renderScenarioGrid(){
                  : '<span class="tag tag-gray">PENDING</span>';
     const manualTag = sc.manualOverride ? ' <span style="font-size:8px;color:var(--amber)">✎ manual</span>' : '';
     return `
-      <div class="scenario-card ${status}" onclick="openScenarioDetail(${i})">
+      <div class="scenario-card ${status}" onclick="detailOpenedFrom=4;openScenarioDetail(${i})">
         <div class="scenario-card-thumb" id="grid-thumb-${i}">
           <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
@@ -2099,6 +2101,13 @@ async function openScenarioDetail(idx){
   document.getElementById('scenario-detail-view').style.display = 'block';
   document.getElementById('detail-title').textContent = `SC${idx+1} — ${sc.name}`;
 
+  const backBtn = document.getElementById('detail-back-btn');
+  if(backBtn){
+    backBtn.textContent = detailOpenedFrom === 2 ? '← Back to Test Configuration'
+                         : detailOpenedFrom === 5 ? '← Back to Dashboard'
+                         : '← Back to grid';
+  }
+
   const video = document.getElementById('detail-video');
   if(sc.file){
     video.src = URL.createObjectURL(sc.file);
@@ -2118,6 +2127,13 @@ async function openScenarioDetail(idx){
 }
 
 function closeScenarioDetail(){
+  // Ramène vers l'écran d'où "Open" a été cliqué (Test Configuration,
+  // grille Execution, ou tableau Dashboard) — avant, le retour supposait
+  // toujours la grille Execution, même si on venait de Test Configuration.
+  if(detailOpenedFrom === 2 || detailOpenedFrom === 5){
+    go(detailOpenedFrom);
+    return;
+  }
   document.getElementById('scenario-detail-view').style.display = 'none';
   document.getElementById('scenario-grid-view').style.display   = 'block';
 }
@@ -2375,7 +2391,7 @@ function renderDashboard(){
                  : sc.status==='fail' ? '<span class="tag tag-red">FAIL</span>'
                  : '<span class="tag tag-gray">—</span>';
     const manualTag = sc.manualOverride ? ' <span style="font-size:8px;color:var(--amber)">✎ manual</span>' : '';
-    return `<tr style="cursor:pointer" onclick="go(4);openScenarioDetail(${i})">
+    return `<tr style="cursor:pointer" onclick="detailOpenedFrom=5;go(4);openScenarioDetail(${i})">
       <td>SC${i+1} — ${sc.name}</td>
       <td>${badge}${manualTag}</td>
       <td>${result.reason || '—'}</td>
@@ -2793,6 +2809,10 @@ function resetToTestConfig(){
   testVectors = [];
   scenarios = [];
   strategy = null;
+  activeIdx = 0;
+  currentDetailExpected = {};
+  currentDetailFramesDetail = [];
+  currentSelectedFrameIdx = null;
 
   // Réinitialise la sélection de stratégie et les sous-cartes associées
   document.getElementById('str0')?.classList.remove('selected');
@@ -2809,10 +2829,48 @@ function resetToTestConfig(){
   if(tvPreview) tvPreview.style.display = 'none';
   const fileTests = document.getElementById('file-tests');
   if(fileTests) fileTests.style.display = 'none';
+  const inputTests = document.getElementById('input-tests');
+  if(inputTests) inputTests.value = '';
+  document.getElementById('manual-tv-tbody')?.replaceChildren();
 
-  // Réinitialise les barres de stats et la grille (sc3/sc4 seront
-  // re-rendues au prochain go() qui les affiche, mais on nettoie tout
-  // de suite pour éviter un flash de données obsolètes)
+  // ⚠️ AJOUTÉ : la génération vidéo précédente restait visible (barre de
+  // statut, pourcentage, texte) — masquée et remise à zéro maintenant.
+  const videoGenCard = document.getElementById('video-gen-card');
+  const videoGenBar = document.getElementById('video-gen-status-bar');
+  if(videoGenCard) videoGenCard.style.display = 'none';
+  if(videoGenBar) videoGenBar.style.display = 'none';
+  const videoGenFill = document.getElementById('video-gen-progress-fill');
+  if(videoGenFill) videoGenFill.style.width = '0%';
+  const videoGenText = document.getElementById('video-gen-status-text');
+  if(videoGenText) videoGenText.textContent = 'Waiting...';
+  const btnGenVideos = document.getElementById('btn-generate-videos');
+  if(btnGenVideos){ btnGenVideos.disabled = false; btnGenVideos.style.opacity = '1'; }
+
+  // ⚠️ AJOUTÉ : la barre de statut de génération IA restait aussi visible
+  const aiStatusBar = document.getElementById('ai-status-bar');
+  if(aiStatusBar) aiStatusBar.style.display = 'none';
+
+  // ⚠️ AJOUTÉ : la barre de progression globale de l'exécution précédente
+  // (Screen Execution) restait affichée avec l'ancien pourcentage
+  const globalProgressBar = document.getElementById('global-progress-bar');
+  if(globalProgressBar) globalProgressBar.style.display = 'none';
+  const btnLaunch = document.getElementById('btn-launch-parallel');
+  if(btnLaunch){ btnLaunch.disabled = false; btnLaunch.style.opacity = '1'; }
+  const btnDash = document.getElementById('btn-go-dashboard');
+  if(btnDash){ btnDash.disabled = true; btnDash.style.opacity = '.4'; btnDash.style.cursor = 'not-allowed'; }
+
+  // ⚠️ AJOUTÉ : la vidéo/détail du dernier scénario ouvert restait affichée
+  const detailVideo = document.getElementById('detail-video');
+  if(detailVideo){ detailVideo.pause(); detailVideo.removeAttribute('src'); detailVideo.load(); }
+  document.getElementById('detail-frames-card')?.style.setProperty('display', 'none');
+
+  // ⚠️ AJOUTÉ : le journal système gardait les logs de l'ancien cycle
+  const logBody = document.getElementById('bench-log-body');
+  if(logBody) logBody.innerHTML = '';
+
+  // Réinitialise les barres de stats et la grille (re-rendues au
+  // prochain go() qui les affiche, mais on nettoie tout de suite pour
+  // éviter un flash de données obsolètes)
   updateStats();
   const grid = document.getElementById('scenario-grid');
   if(grid) grid.innerHTML = '';
