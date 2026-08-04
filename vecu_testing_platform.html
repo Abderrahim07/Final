@@ -875,6 +875,13 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   <!-- ═══ SCREEN 4 — TEST BENCH ═══ -->
   <div class="screen" id="sc3">
 
+    <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+      <button class="btn-secondary" onclick="resetToTestConfig()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        New test cycle
+      </button>
+    </div>
+
     <!-- Résumé global -->
     <div class="results-bar" id="results-bar">
       <div class="rs"><div class="rs-val" id="rs-total">0</div><div class="rs-label">Scenarios</div></div>
@@ -956,8 +963,12 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           </div>
 
           <div class="card" style="margin:0" id="detail-reason-card">
-            <div class="card-title" style="font-size:11px">Verdict</div>
+            <div class="card-head" style="display:flex;align-items:center;justify-content:space-between">
+              <div class="card-title" style="font-size:11px">Verdict</div>
+              <button class="btn-secondary" id="detail-override-btn" onclick="toggleManualVerdict()" style="display:none;padding:4px 10px;font-size:10px"></button>
+            </div>
             <div id="detail-reason" style="margin-top:6px;font-size:11px;color:var(--text2);font-family:var(--mono)">—</div>
+            <div id="detail-override-note" style="display:none;margin-top:6px;font-size:9.5px;color:var(--amber)"></div>
           </div>
         </div>
       </div>
@@ -995,10 +1006,16 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           <div class="card-title">📊 Results Dashboard</div>
           <div class="card-sub">Test campaign overview</div>
         </div>
-        <button class="btn-secondary" onclick="downloadReportPDF()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Download PDF report
-        </button>
+        <div style="display:flex;gap:8px">
+          <button class="btn-secondary" onclick="resetToTestConfig()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            New test cycle
+          </button>
+          <button class="btn-secondary" onclick="downloadReportPDF()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download PDF report
+          </button>
+        </div>
       </div>
       <div class="results-bar" id="dash-results-bar">
         <div class="rs"><div class="rs-val" id="dash-total">0</div><div class="rs-label">Scenarios</div></div>
@@ -1745,6 +1762,7 @@ function renderScenarioGrid(){
                  : status==='fail' ? '<span class="tag tag-red">FAIL</span>'
                  : status==='running' ? '<span class="tag tag-cyan">RUNNING</span>'
                  : '<span class="tag tag-gray">PENDING</span>';
+    const manualTag = sc.manualOverride ? ' <span style="font-size:8px;color:var(--amber)">✎ manual</span>' : '';
     return `
       <div class="scenario-card ${status}" onclick="openScenarioDetail(${i})">
         <div class="scenario-card-thumb" id="grid-thumb-${i}">
@@ -1754,7 +1772,7 @@ function renderScenarioGrid(){
         </div>
         <div class="scenario-card-body">
           <div class="scenario-card-name">SC${i+1} — ${sc.name}</div>
-          <div class="scenario-card-status">${badge}</div>
+          <div class="scenario-card-status">${badge}${manualTag}</div>
         </div>
       </div>`;
   }).join('');
@@ -2169,11 +2187,50 @@ function renderDetailGeneric(idx){
   document.getElementById('detail-reason').textContent =
     result.reason || (sc.status==='running' ? 'Test en cours...' : 'Not launched yet');
 
+  // ── Bascule manuelle PASS/FAIL — jugement ingénieur ──
+  const overrideBtn = document.getElementById('detail-override-btn');
+  const overrideNote = document.getElementById('detail-override-note');
+  if(sc.status === 'pass' || sc.status === 'fail'){
+    overrideBtn.style.display = 'inline-block';
+    overrideBtn.textContent = sc.status === 'fail' ? '✓ Mark as PASS' : '✗ Mark as FAIL';
+  } else {
+    overrideBtn.style.display = 'none';
+  }
+  if(sc.manualOverride){
+    overrideNote.style.display = 'block';
+    overrideNote.textContent = `⚠️ Manually overridden — automated result was ${sc.originalStatus.toUpperCase()}`;
+  } else {
+    overrideNote.style.display = 'none';
+  }
+
   if(sc.status==='running') addLog('[STATUS] Running...', 'info');
   else if(sc.status==='pass') addLog('[RESULT] ✅ PASS — '+(result.reason||''), 'ok');
   else if(sc.status==='fail') addLog('[RESULT] ❌ FAIL — '+(result.reason||''), 'err');
 
   renderFramesDetail(result);
+}
+
+// ── Bascule manuelle du verdict PASS/FAIL — jugement ingénieur ──
+// Le testeur peut considérer un FAIL comme acceptable (ou l'inverse)
+// selon son jugement. Le résultat automatique original est conservé
+// (sc.originalStatus) pour traçabilité — jamais écrasé silencieusement.
+function toggleManualVerdict(){
+  const sc = scenarios[activeIdx];
+  if(!sc || (sc.status !== 'pass' && sc.status !== 'fail')) return;
+
+  if(!sc.manualOverride){
+    sc.originalStatus = sc.status;  // mémorise le résultat automatique une seule fois
+  }
+  sc.status = sc.status === 'fail' ? 'pass' : 'fail';
+  sc.manualOverride = true;
+
+  addLog(`[OVERRIDE] ${sc.name} → ${sc.status.toUpperCase()} (manual, automated result was ${sc.originalStatus.toUpperCase()})`, 'info');
+  showToast(`Verdict manually set to ${sc.status.toUpperCase()} for ${sc.name}`, 'success');
+
+  renderDetailGeneric(activeIdx);
+  renderScenarioGrid();
+  updateStats();
+  if(document.getElementById('sc4')?.classList.contains('active')) renderDashboard();
 }
 
 // ── Panneau "Résultats (sorties)" — réutilisé pour la vue globale
@@ -2317,9 +2374,10 @@ function renderDashboard(){
     const badge  = sc.status==='pass' ? '<span class="tag tag-green">PASS</span>'
                  : sc.status==='fail' ? '<span class="tag tag-red">FAIL</span>'
                  : '<span class="tag tag-gray">—</span>';
+    const manualTag = sc.manualOverride ? ' <span style="font-size:8px;color:var(--amber)">✎ manual</span>' : '';
     return `<tr style="cursor:pointer" onclick="go(4);openScenarioDetail(${i})">
       <td>SC${i+1} — ${sc.name}</td>
-      <td>${badge}</td>
+      <td>${badge}${manualTag}</td>
       <td>${result.reason || '—'}</td>
       <td>${result.total_frames ?? '—'}</td>
     </tr>`;
@@ -2717,6 +2775,50 @@ function builderConfirmAndLaunch(){
   closeBuilder();
   go(4);
   openScenarioDetail(videoIdx);
+}
+
+// ── Nouveau cycle de test — repart de l'écran Test Configuration sans
+// toucher au projet ni aux fichiers déjà uploadés (modèle, RTE, BSW,
+// requirements, signaux) — seuls les vecteurs de test/scénarios/
+// résultats de ce cycle sont effacés, pour pouvoir refaire le choix
+// entre tests manuels et génération IA sans tout reprendre à zéro.
+function resetToTestConfig(){
+  if(scenarios.length > 0 && !confirm(
+    'Start a new test cycle? This clears all test vectors, scenarios, ' +
+    'and results from this run. Your uploaded software, RTE/BSW, ' +
+    'requirements and signals stay untouched — you won\'t need to ' +
+    're-upload anything.'
+  )) return;
+
+  testVectors = [];
+  scenarios = [];
+  strategy = null;
+
+  // Réinitialise la sélection de stratégie et les sous-cartes associées
+  document.getElementById('str0')?.classList.remove('selected');
+  document.getElementById('str1')?.classList.remove('selected');
+  const subUpload = document.getElementById('sub-upload-card');
+  const scenariosList = document.getElementById('scenarios-list-card');
+  const aiGenerate = document.getElementById('ai-generate-card');
+  if(subUpload) subUpload.style.display = 'none';
+  if(scenariosList) scenariosList.style.display = 'none';
+  if(aiGenerate) aiGenerate.style.display = 'none';
+
+  // Réinitialise l'aperçu du fichier importé et le formulaire de saisie manuelle
+  const tvPreview = document.getElementById('tv-preview');
+  if(tvPreview) tvPreview.style.display = 'none';
+  const fileTests = document.getElementById('file-tests');
+  if(fileTests) fileTests.style.display = 'none';
+
+  // Réinitialise les barres de stats et la grille (sc3/sc4 seront
+  // re-rendues au prochain go() qui les affiche, mais on nettoie tout
+  // de suite pour éviter un flash de données obsolètes)
+  updateStats();
+  const grid = document.getElementById('scenario-grid');
+  if(grid) grid.innerHTML = '';
+
+  showToast('✅ Test cycle reset — pick a strategy to start over', 'success');
+  go(2);
 }
 
 function selectStrategy(n){
