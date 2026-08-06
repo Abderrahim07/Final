@@ -448,6 +448,55 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 </head>
 <body>
 
+<!-- ═══ LOGIN — remplace la redirection Cognito Hosted UI ═══ -->
+<div id="login-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--bg1,#080B10);
+     align-items:center;justify-content:center;flex-direction:column">
+  <div style="width:340px;background:var(--bg2,#0d1219);border:1px solid var(--border,#1b2330);border-radius:14px;padding:32px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px">
+      <div class="logo-dot"></div>
+      <span style="font-weight:700;font-size:14px">vECU · TESTING PLATFORM</span>
+    </div>
+
+    <div id="login-error" style="display:none;margin-bottom:14px;padding:10px 12px;background:rgba(255,92,92,.1);
+         border:1px solid rgba(255,92,92,.3);border-radius:8px;color:var(--red,#ff5c5c);font-size:11px"></div>
+
+    <div id="login-form-fields">
+      <label style="display:block;font-size:11px;color:var(--text2,#9aa5b8);margin-bottom:6px">Email</label>
+      <input type="email" id="login-email" autocomplete="username"
+             style="width:100%;box-sizing:border-box;padding:10px 12px;margin-bottom:14px;background:var(--bg3,#131a24);
+             border:1px solid var(--border,#1b2330);border-radius:8px;color:var(--text1,#e8ecf3);font-size:13px"/>
+
+      <label style="display:block;font-size:11px;color:var(--text2,#9aa5b8);margin-bottom:6px">Password</label>
+      <input type="password" id="login-password" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter') handleLoginSubmit()"
+             style="width:100%;box-sizing:border-box;padding:10px 12px;margin-bottom:20px;background:var(--bg3,#131a24);
+             border:1px solid var(--border,#1b2330);border-radius:8px;color:var(--text1,#e8ecf3);font-size:13px"/>
+    </div>
+
+    <div id="new-password-fields" style="display:none">
+      <div style="font-size:11px;color:var(--text2,#9aa5b8);margin-bottom:14px">
+        First login — please set a new password.
+      </div>
+      <label style="display:block;font-size:11px;color:var(--text2,#9aa5b8);margin-bottom:6px">New password</label>
+      <input type="password" id="new-password-1" autocomplete="new-password"
+             style="width:100%;box-sizing:border-box;padding:10px 12px;margin-bottom:14px;background:var(--bg3,#131a24);
+             border:1px solid var(--border,#1b2330);border-radius:8px;color:var(--text1,#e8ecf3);font-size:13px"/>
+      <label style="display:block;font-size:11px;color:var(--text2,#9aa5b8);margin-bottom:6px">Confirm new password</label>
+      <input type="password" id="new-password-2" autocomplete="new-password"
+             onkeydown="if(event.key==='Enter') handleNewPasswordSubmit()"
+             style="width:100%;box-sizing:border-box;padding:10px 12px;margin-bottom:20px;background:var(--bg3,#131a24);
+             border:1px solid var(--border,#1b2330);border-radius:8px;color:var(--text1,#e8ecf3);font-size:13px"/>
+    </div>
+
+    <button id="login-submit-btn" class="btn-primary" style="width:100%;justify-content:center"
+            onclick="document.getElementById('new-password-fields').style.display==='block' ? handleNewPasswordSubmit() : handleLoginSubmit()">
+      Sign in
+    </button>
+  </div>
+</div>
+
+<div id="app-root">
+
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="logo"><div class="logo-dot"></div>vECU · TESTING PLATFORM</div>
@@ -1067,110 +1116,117 @@ const DEMO = API.includes('XXXXXXXX');
 // ══════════════════════════
 
 // ══════════════════════════════════════════════
-// AUTH — Cognito Hosted UI (Authorization Code + PKCE)
+// AUTH — Cognito direct (InitiateAuth, USER_PASSWORD_AUTH)
 // ══════════════════════════════════════════════
-// ⚠️ Mis de côté temporairement (redirect_mismatch à régler plus tard) —
-// repasser à `true` une fois le callback_url Cognito résolu.
-const AUTH_TEMPORARILY_DISABLED = true;
+// ⚠️ Remplace le flow Hosted UI (Authorization Code + PKCE + redirect)
+// qui butait sur "redirect_mismatch" à cause de l'IP dynamique de la
+// tâche Fargate. Ici, aucune redirection ni callback_url — juste un
+// appel direct à l'API Cognito Identity Provider, donc ce problème ne
+// peut structurellement plus se produire.
+//
+// ⚠️ PRÉREQUIS CÔTÉ COGNITO (console, à faire une fois) :
+// App Client → Authentication flows → cocher "ALLOW_USER_PASSWORD_AUTH"
+// et "ALLOW_REFRESH_TOKEN_AUTH". Sans ça, InitiateAuth échoue avec
+// "USER_PASSWORD_AUTH flow not enabled for this client".
+// ⚠️ Laissé désactivé par sécurité — repasser à `false` UNE FOIS que
+// "ALLOW_USER_PASSWORD_AUTH" est coché sur l'App Client Cognito (voir
+// prérequis ci-dessus). L'activer avant ça vous bloquerait complètement
+// l'accès à l'app (InitiateAuth échouerait, pas de repli possible).
+const AUTH_TEMPORARILY_DISABLED = false;
 
 const AUTH_CONFIG = {
-  domain:      'vecu-auth-lpa2026.auth.eu-west-3.amazoncognito.com',
-  clientId:    '4m5e3leso5kn3173p2kf3fbif',
-  redirectUri: window.location.origin + window.location.pathname,
-  scope:       'openid email profile',
-  region:      'eu-west-3'
+  clientId: '4m5e3leso5kn3173p2kf3fbif',
+  region:   'eu-west-3',
 };
 const AUTH_ENABLED = !AUTH_TEMPORARILY_DISABLED && !AUTH_CONFIG.clientId.startsWith('REPLACE_');
+const COGNITO_IDP_ENDPOINT = `https://cognito-idp.${AUTH_CONFIG.region}.amazonaws.com/`;
 
 let AUTH_TOKENS = null;   // {id_token, access_token, refresh_token, expires_at}
 let AUTH_CLAIMS = null;   // payload décodé de l'id_token {email, 'cognito:groups', ...}
+let PENDING_NEW_PASSWORD_SESSION = null; // Session Cognito en attente si challenge NEW_PASSWORD_REQUIRED
 
-function base64UrlEncode(buffer){
-  return btoa(String.fromCharCode(...new Uint8Array(buffer)))
-    .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-}
-
-async function generatePkcePair(){
-  const random = crypto.getRandomValues(new Uint8Array(32));
-  const verifier = base64UrlEncode(random);
-
-  // ⚠️ crypto.subtle n'est disponible que dans un contexte sécurisé
-  // (HTTPS, ou localhost). Sur du HTTP brut via IP, on retombe sur la
-  // méthode PKCE "plain" (verifier = challenge), toujours valide côté
-  // Cognito, juste un cran moins robuste que S256.
-  if(window.isSecureContext && crypto.subtle){
-    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
-    const challenge = base64UrlEncode(digest);
-    return { verifier, challenge, method: 'S256' };
-  }
-  console.warn('[AUTH] Insecure context (HTTP) — PKCE in "plain" mode instead of S256');
-  return { verifier, challenge: verifier, method: 'plain' };
-}
-
-async function redirectToLogin(){
-  const { verifier, challenge, method } = await generatePkcePair();
-  sessionStorage.setItem('pkce_verifier', verifier);
-  const params = new URLSearchParams({
-    response_type: 'code',
-    client_id: AUTH_CONFIG.clientId,
-    redirect_uri: AUTH_CONFIG.redirectUri,
-    scope: AUTH_CONFIG.scope,
-    code_challenge: challenge,
-    code_challenge_method: method
-  });
-  window.location.href = `https://${AUTH_CONFIG.domain}/oauth2/authorize?${params.toString()}`;
-}
-
-async function exchangeCodeForTokens(code){
-  const verifier = sessionStorage.getItem('pkce_verifier');
-  const body = new URLSearchParams({
-    grant_type: 'authorization_code',
-    client_id: AUTH_CONFIG.clientId,
-    code,
-    redirect_uri: AUTH_CONFIG.redirectUri,
-    code_verifier: verifier
-  });
-  const resp = await fetch(`https://${AUTH_CONFIG.domain}/oauth2/token`, {
+async function cognitoIdpCall(target, body){
+  const resp = await fetch(COGNITO_IDP_ENDPOINT, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: body.toString()
+    headers: {
+      'Content-Type': 'application/x-amz-json-1.1',
+      'X-Amz-Target': `AWSCognitoIdentityProviderService.${target}`,
+    },
+    body: JSON.stringify(body),
   });
-  if(!resp.ok) throw new Error('Cognito code exchange failed');
-  const tokens = await resp.json();
-  storeTokens(tokens);
+  const data = await resp.json();
+  if(!resp.ok){
+    throw new Error(data.message || data.__type || 'Cognito request failed');
+  }
+  return data;
+}
+
+function storeTokensFromCognito(authResult, existingRefreshToken){
+  const expires_at = Date.now() + (authResult.ExpiresIn || 3600) * 1000;
+  AUTH_TOKENS = {
+    id_token: authResult.IdToken,
+    access_token: authResult.AccessToken,
+    refresh_token: authResult.RefreshToken || existingRefreshToken,
+    expires_at,
+  };
+  localStorage.setItem('vecu_auth_tokens', JSON.stringify(AUTH_TOKENS));
+  AUTH_CLAIMS = decodeJwt(authResult.IdToken);
+}
+
+// ── Connexion — appelée par le formulaire de login ──
+async function loginWithPassword(email, password){
+  const data = await cognitoIdpCall('InitiateAuth', {
+    AuthFlow: 'USER_PASSWORD_AUTH',
+    ClientId: AUTH_CONFIG.clientId,
+    AuthParameters: { USERNAME: email, PASSWORD: password },
+  });
+
+  if(data.ChallengeName === 'NEW_PASSWORD_REQUIRED'){
+    // Cognito force un changement de mot de passe (ex: compte créé par
+    // un admin avec un mot de passe temporaire) — on garde la session
+    // en attente et on demande le nouveau mot de passe dans l'UI.
+    PENDING_NEW_PASSWORD_SESSION = { session: data.Session, email };
+    return { challenge: 'NEW_PASSWORD_REQUIRED' };
+  }
+
+  if(!data.AuthenticationResult){
+    throw new Error('Unexpected response from Cognito: ' + JSON.stringify(data));
+  }
+
+  storeTokensFromCognito(data.AuthenticationResult);
+  return { challenge: null };
+}
+
+async function respondNewPassword(newPassword){
+  if(!PENDING_NEW_PASSWORD_SESSION) throw new Error('No pending session');
+  const data = await cognitoIdpCall('RespondToAuthChallenge', {
+    ChallengeName: 'NEW_PASSWORD_REQUIRED',
+    ClientId: AUTH_CONFIG.clientId,
+    Session: PENDING_NEW_PASSWORD_SESSION.session,
+    ChallengeResponses: {
+      USERNAME: PENDING_NEW_PASSWORD_SESSION.email,
+      NEW_PASSWORD: newPassword,
+    },
+  });
+  PENDING_NEW_PASSWORD_SESSION = null;
+  if(!data.AuthenticationResult){
+    throw new Error('Unexpected response from Cognito: ' + JSON.stringify(data));
+  }
+  storeTokensFromCognito(data.AuthenticationResult);
 }
 
 async function refreshTokens(){
   if(!AUTH_TOKENS?.refresh_token) return false;
   try{
-    const body = new URLSearchParams({
-      grant_type: 'refresh_token',
-      client_id: AUTH_CONFIG.clientId,
-      refresh_token: AUTH_TOKENS.refresh_token
+    const data = await cognitoIdpCall('InitiateAuth', {
+      AuthFlow: 'REFRESH_TOKEN_AUTH',
+      ClientId: AUTH_CONFIG.clientId,
+      AuthParameters: { REFRESH_TOKEN: AUTH_TOKENS.refresh_token },
     });
-    const resp = await fetch(`https://${AUTH_CONFIG.domain}/oauth2/token`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: body.toString()
-    });
-    if(!resp.ok) return false;
-    const tokens = await resp.json();
-    tokens.refresh_token = tokens.refresh_token || AUTH_TOKENS.refresh_token;
-    storeTokens(tokens);
+    if(!data.AuthenticationResult) return false;
+    storeTokensFromCognito(data.AuthenticationResult, AUTH_TOKENS.refresh_token);
     return true;
   }catch(e){ return false; }
-}
-
-function storeTokens(tokens){
-  const expires_at = Date.now() + (tokens.expires_in || 3600) * 1000;
-  AUTH_TOKENS = {
-    id_token: tokens.id_token,
-    access_token: tokens.access_token,
-    refresh_token: tokens.refresh_token,
-    expires_at
-  };
-  localStorage.setItem('vecu_auth_tokens', JSON.stringify(AUTH_TOKENS));
-  AUTH_CLAIMS = decodeJwt(tokens.id_token);
 }
 
 function decodeJwt(token){
@@ -1198,32 +1254,92 @@ async function ensureValidToken(){
 
 function logout(){
   localStorage.removeItem('vecu_auth_tokens');
-  const params = new URLSearchParams({
-    client_id: AUTH_CONFIG.clientId,
-    logout_uri: AUTH_CONFIG.redirectUri
-  });
-  window.location.href = `https://${AUTH_CONFIG.domain}/logout?${params.toString()}`;
+  AUTH_TOKENS = null;
+  AUTH_CLAIMS = null;
+  // Pas de redirection Hosted UI ici — juste un rechargement propre,
+  // showLoginForm() reprendra la main puisque loadStoredTokens() échouera.
+  window.location.reload();
+}
+
+// ── Formulaire de connexion (remplace la redirection Hosted UI) ──
+function showLoginForm(){
+  document.getElementById('login-overlay').style.display = 'flex';
+  document.getElementById('app-root').style.display = 'none';
+}
+
+function hideLoginForm(){
+  document.getElementById('login-overlay').style.display = 'none';
+  document.getElementById('app-root').style.display = 'block';
+}
+
+async function handleLoginSubmit(){
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-submit-btn');
+  errEl.style.display = 'none';
+
+  if(!email || !password){
+    errEl.textContent = 'Enter your email and password.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Signing in...';
+  try{
+    const result = await loginWithPassword(email, password);
+    if(result.challenge === 'NEW_PASSWORD_REQUIRED'){
+      document.getElementById('login-form-fields').style.display = 'none';
+      document.getElementById('new-password-fields').style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Sign in';
+      return;
+    }
+    hideLoginForm();
+    updateTopbarUser();
+    showDashboard();
+  }catch(e){
+    errEl.textContent = e.message || 'Login failed — check your email and password.';
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Sign in';
+  }
+}
+
+async function handleNewPasswordSubmit(){
+  const pw1 = document.getElementById('new-password-1').value;
+  const pw2 = document.getElementById('new-password-2').value;
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+
+  if(!pw1 || pw1 !== pw2){
+    errEl.textContent = 'Passwords do not match.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('login-submit-btn');
+  btn.disabled = true; btn.textContent = 'Setting password...';
+  try{
+    await respondNewPassword(pw1);
+    hideLoginForm();
+    updateTopbarUser();
+    showDashboard();
+  }catch(e){
+    errEl.textContent = e.message || 'Could not set the new password.';
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Set password';
+  }
 }
 
 // ── Point d'entrée : à appeler avant tout rendu de l'app ──
 async function initAuth(){
   if(!AUTH_ENABLED) return true; // Cognito pas encore configuré → app accessible librement
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const code = urlParams.get('code');
-
-  if(code){
-    await exchangeCodeForTokens(code);
-    window.history.replaceState({}, '', AUTH_CONFIG.redirectUri); // nettoie ?code=... de l'URL
-    return true;
-  }
-
   if(loadStoredTokens() && await ensureValidToken()){
     return true;
   }
 
-  await redirectToLogin();
-  return false; // la page va rediriger, ne rien rendre de plus
+  showLoginForm();
+  return false; // le formulaire de connexion prend la main
 }
 
 function getTeamId(){
@@ -1400,7 +1516,7 @@ async function createProject(){
     const resp=await apiFetch(`${API}/projects`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,description:desc})});
     let d=JSON.parse(await resp.text());
     if(d.body&&typeof d.body==='string') d=JSON.parse(d.body);
-    if(!d.project_id) throw new Error('project_id manquant');
+    if(!d.project_id) throw new Error('project_id missing');
     PROJECT_ID=d.project_id; projName=name; showBanner(); updatePath();
     showToast(`✅ Project "${name}" — ID: ${PROJECT_ID}`,'success'); go(1);
   }catch(e){ showToast('❌ '+e.message,'error',6000); }
@@ -2945,7 +3061,7 @@ async function generateTestsWithAI(){
     });
     let data = JSON.parse(await resp.text());
     if(data.body && typeof data.body==='string') data = JSON.parse(data.body);
-    if(!data.job_id) throw new Error('job_id manquant');
+    if(!data.job_id) throw new Error('job_id missing');
 
     setAiStatus('running','Job started — generation in progress (~1-3 min)...',15);
     await pollGenerateStatus(data.job_id);
@@ -3613,7 +3729,7 @@ async function compileFirmware(){
     let data = JSON.parse(await resp.text());
     if(data.body && typeof data.body==='string') data=JSON.parse(data.body);
 
-    if(!data.build_id) throw new Error('build_id manquant');
+    if(!data.build_id) throw new Error('build_id missing');
 
     setBuildStatus('building', `Build started — ${data.build_id.split(':').pop().slice(0,8)}...`, 15);
     showToast('🔨 Compilation started (~2-3 min)','info');
@@ -4155,5 +4271,6 @@ function scModalOutside(e) {
   if (e.target === document.getElementById('sc-modal-overlay')) closeScModal();
 }
 </script>
+</div>
 </body>
 </html>
