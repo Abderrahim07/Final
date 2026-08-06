@@ -561,7 +561,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div class="field"><label>Description</label><textarea id="proj-desc" placeholder="Component tested, version, context..."></textarea></div>
       <div class="s3-path"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>S3 folder:&nbsp;<code id="s3-preview">s3://vecu-results/projects/…/</code></div>
     </div>
-    <div class="btn-row"><button class="btn-primary" onclick="createProject()">Create project <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div>
+    <div class="btn-row"><button class="btn-primary" id="btn-create-project" onclick="createProject()">Create project <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div>
   </div>
 
   <!-- ═══ SCREEN 2 — Uploads (Software + Requirements + I/O + Vidéos) ═══ -->
@@ -1506,11 +1506,24 @@ function updatePath(){
 }
 
 // ── Create project
+let _createProjectInFlight = false;
+
 async function createProject(){
+  // ⚠️ Garde-fou anti-double-clic — le bouton n'était pas désactivé
+  // pendant l'appel, un double-clic (ou un clic pendant une latence
+  // réseau) pouvait déclencher deux POST /projects avant que le
+  // premier ne se termine, créant deux projets distincts en base.
+  if(_createProjectInFlight) return;
+
   const name=document.getElementById('proj-name').value.trim();
   const desc=document.getElementById('proj-desc').value.trim();
   if(!name){ showToast('⚠️ Name required','error'); return; }
   if(DEMO){ PROJECT_ID='demo-'+Math.random().toString(36).slice(2,6); projName=name; showBanner(); updatePath(); showToast(`✅ Project "${name}" created`,'success'); go(1); return; }
+
+  _createProjectInFlight = true;
+  const btn = document.getElementById('btn-create-project');
+  if(btn){ btn.disabled = true; btn.style.opacity = '.6'; btn.style.cursor = 'not-allowed'; }
+
   showLoader('Creating...');
   try{
     const resp=await apiFetch(`${API}/projects`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,description:desc})});
@@ -1520,7 +1533,11 @@ async function createProject(){
     PROJECT_ID=d.project_id; projName=name; showBanner(); updatePath();
     showToast(`✅ Project "${name}" — ID: ${PROJECT_ID}`,'success'); go(1);
   }catch(e){ showToast('❌ '+e.message,'error',6000); }
-  finally{ hideLoader(); }
+  finally{
+    hideLoader();
+    _createProjectInFlight = false;
+    if(btn){ btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+  }
 }
 
 function showBanner(){ document.getElementById('banner-id').textContent=PROJECT_ID; document.getElementById('proj-banner').classList.add('show'); }
