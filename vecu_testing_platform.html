@@ -1422,36 +1422,54 @@ async function loadDashboard(){
   }
 
   list.innerHTML = `<div style="font-size:12px;color:var(--text2);padding:20px;text-align:center">⏳ Loading...</div>`;
-  try{
-    const resp = await apiFetch(`${API}/projects`);
-    let data = JSON.parse(await resp.text());
-    if(data.body && typeof data.body==='string') data = JSON.parse(data.body);
-    const projects = data.projects || [];
 
-    if(projects.length === 0){
-      list.innerHTML = `<div style="font-size:12px;color:var(--text2);padding:20px;text-align:center">
-        No project for your team yet.</div>`;
+  // ⚠️ AJOUTÉ : le GSI DynamoDB interrogé par GET /projects est "eventually
+  // consistent" — un projet tout juste créé peut mettre 1-2s à y apparaître.
+  // Si la liste semble vide juste après une création (_justCreatedProject),
+  // on réessaie automatiquement quelques fois avant d'afficher "No project
+  // for your team yet" — évite de faire croire à un échec de création qui
+  // poussait le testeur à recréer le même projet en double.
+  const maxAttempts = _justCreatedProject ? 4 : 1;
+
+  for(let attempt = 1; attempt <= maxAttempts; attempt++){
+    try{
+      const resp = await apiFetch(`${API}/projects`);
+      let data = JSON.parse(await resp.text());
+      if(data.body && typeof data.body==='string') data = JSON.parse(data.body);
+      const projects = data.projects || [];
+
+      if(projects.length === 0){
+        if(attempt < maxAttempts){
+          await sleep(1200);
+          continue;
+        }
+        list.innerHTML = `<div style="font-size:12px;color:var(--text2);padding:20px;text-align:center">
+          No project for your team yet.</div>`;
+        return;
+      }
+
+      _justCreatedProject = false;
+      list.innerHTML = projects.map(p => `
+        <div style="display:flex;align-items:center;justify-content:space-between;
+          background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:16px 20px">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--text1)">${p.name || p.project_id}</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:3px">${p.description || ''}</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:4px;font-family:var(--mono)">
+              ${p.created_by || ''} · ${p.created_at ? new Date(p.created_at).toLocaleString('fr-FR') : ''}
+            </div>
+          </div>
+          <button class="btn-primary" onclick='resumeProject(${JSON.stringify(p)})'>
+            ▶ Reprendre
+          </button>
+        </div>`).join('');
+      return;
+
+    }catch(e){
+      list.innerHTML = `<div style="font-size:12px;color:var(--red);padding:20px;text-align:center">
+        ❌ Erreur de chargement : ${e.message}</div>`;
       return;
     }
-
-    list.innerHTML = projects.map(p => `
-      <div style="display:flex;align-items:center;justify-content:space-between;
-        background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:16px 20px">
-        <div>
-          <div style="font-size:13px;font-weight:700;color:var(--text1)">${p.name || p.project_id}</div>
-          <div style="font-size:11px;color:var(--text2);margin-top:3px">${p.description || ''}</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:4px;font-family:var(--mono)">
-            ${p.created_by || ''} · ${p.created_at ? new Date(p.created_at).toLocaleString('fr-FR') : ''}
-          </div>
-        </div>
-        <button class="btn-primary" onclick='resumeProject(${JSON.stringify(p)})'>
-          ▶ Reprendre
-        </button>
-      </div>`).join('');
-
-  }catch(e){
-    list.innerHTML = `<div style="font-size:12px;color:var(--red);padding:20px;text-align:center">
-      ❌ Erreur de chargement : ${e.message}</div>`;
   }
 }
 
@@ -1507,6 +1525,7 @@ function updatePath(){
 
 // ── Create project
 let _createProjectInFlight = false;
+let _justCreatedProject = false;  // déclenche le retry GSI dans loadDashboard()
 
 async function createProject(){
   // ⚠️ Garde-fou anti-double-clic — le bouton n'était pas désactivé
@@ -1531,6 +1550,7 @@ async function createProject(){
     if(d.body&&typeof d.body==='string') d=JSON.parse(d.body);
     if(!d.project_id) throw new Error('project_id missing');
     PROJECT_ID=d.project_id; projName=name; showBanner(); updatePath();
+    _justCreatedProject = true;
     showToast(`✅ Project "${name}" — ID: ${PROJECT_ID}`,'success'); go(1);
   }catch(e){ showToast('❌ '+e.message,'error',6000); }
   finally{
