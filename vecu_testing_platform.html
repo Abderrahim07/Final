@@ -442,6 +442,59 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .widget-body{padding:10px 11px}
 .widget-desc{font-size:9px;color:var(--text3);margin-bottom:8px;line-height:1.4}
 
+/* ── 7-step stepper: tighter items ── */
+.step-item{padding:10px 10px;gap:8px}
+.step-label{font-size:11.5px}
+/* ── Vehicle dynamics step ── */
+.vd-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.vd-toggle{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;user-select:none}
+.vd-toggle input{accent-color:var(--accent);width:15px;height:15px}
+.vd-tabs{display:inline-flex;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:3px;margin-bottom:16px}
+.vd-tabs button{background:transparent;border:none;color:var(--text2);font:500 12px var(--sans);padding:8px 18px;border-radius:5px;cursor:pointer}
+.vd-tabs button.on{background:rgba(0,212,255,.12);color:var(--accent)}
+.vd-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-bottom:16px}
+.vd-card{background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--rl);padding:16px;cursor:pointer;transition:all .2s}
+.vd-card:hover{border-color:rgba(0,212,255,.4)}
+.vd-card.sel{border-color:var(--accent);background:rgba(0,212,255,.05);box-shadow:0 0 18px rgba(0,212,255,.12)}
+.vd-card h4{font-size:14px;color:var(--text1);margin-bottom:2px}
+.vd-card .sub{font-size:11px;color:var(--text2);margin-bottom:10px}
+.vd-card dl{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:11px}
+.vd-card dt{color:var(--text3)}.vd-card dd{color:var(--text1);font-family:var(--mono);text-align:right}
+.vd-card .lnk{margin-top:10px;font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;padding:0;font-family:var(--sans)}
+.vd-lib{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:16px}
+.vd-lib-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.vd-lib-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--border);font-size:12px;color:var(--text1)}
+.vd-lib-row .meta{flex:1;color:var(--text2);font-family:var(--mono);font-size:11px}
+.vd-sec{margin-bottom:18px}
+.vd-sec h5{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.vd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.vd-f label{display:block;font-size:11px;color:var(--text2);margin-bottom:4px}
+.vd-f .in{display:flex;align-items:center;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r)}
+.vd-f .in:focus-within{border-color:var(--accent)}
+.vd-f input{flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--text1);font:13px var(--mono);padding:8px 10px}
+.vd-f .u{font-size:10px;color:var(--text3);padding-right:10px;font-family:var(--mono)}
+.vd-f.bad .in{border-color:var(--red)}
+.vd-err{font-size:10.5px;color:var(--red);min-height:0;margin-top:3px}
+.vd-warn{font-size:11px;color:var(--amber);background:rgba(255,181,71,.07);border:1px solid rgba(255,181,71,.2);border-radius:var(--r);padding:8px 12px;margin-bottom:8px}
+.vd-tq{width:100%;max-width:420px;border-collapse:collapse}
+.vd-tq td{padding:3px 6px 3px 0}
+.vd-tq input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);color:var(--text1);font:12px var(--mono);padding:6px 8px}
+.vd-mini{background:transparent;border:1px solid var(--border2);color:var(--text2);border-radius:5px;font-size:11px;padding:5px 10px;cursor:pointer;font-family:var(--sans)}
+.vd-mini:hover{border-color:var(--accent);color:var(--accent)}
+.vd-mini.danger:hover{border-color:var(--red);color:var(--red)}
+.vd-summary{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:16px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rl);padding:16px;margin-top:6px}
+.vd-kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vd-kpi .v{font:600 16px var(--mono);color:var(--accent)}.vd-kpi .l{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.vd-off{opacity:.35;pointer-events:none}
+@media(max-width:760px){.vd-summary{grid-template-columns:1fr}}
+/* ── file management ── */
+.file-item .fbtn{flex:none;background:transparent;border:1px solid var(--border2);color:var(--text2);border-radius:5px;font:11px var(--sans);padding:3px 8px;cursor:pointer}
+.file-item .fbtn:hover{border-color:var(--accent);color:var(--accent)}
+.file-item .fbtn.del:hover{border-color:var(--red);color:var(--red)}
+.file-item .fsize{flex:none;font-size:10px;color:var(--text3);font-family:var(--mono)}
+.file-item.failed{background:rgba(255,92,92,.04);border-color:rgba(255,92,92,.2)}
+.file-clear{font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;margin-top:6px;padding:0;font-family:var(--sans)}
+.file-clear:hover{color:var(--red)}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -541,13 +594,15 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="step-sep"></div>
     <div class="step-item" id="nav1"><div class="step-num" id="num1">2</div><div class="step-label">Uploads</div></div>
     <div class="step-sep"></div>
-    <div class="step-item" id="nav2"><div class="step-num" id="num2">3</div><div class="step-label">Test Configuration</div></div>
+    <div class="step-item" id="nav2"><div class="step-num" id="num2">3</div><div class="step-label">Vehicle</div></div>
     <div class="step-sep"></div>
-    <div class="step-item" id="nav3"><div class="step-num" id="num3">4</div><div class="step-label">Firmware Build</div></div>
+    <div class="step-item" id="nav3"><div class="step-num" id="num3">4</div><div class="step-label">Test Configuration</div></div>
     <div class="step-sep"></div>
-    <div class="step-item" id="nav4"><div class="step-num" id="num4">5</div><div class="step-label">Execution</div></div>
+    <div class="step-item" id="nav4"><div class="step-num" id="num4">5</div><div class="step-label">Firmware Build</div></div>
     <div class="step-sep"></div>
-    <div class="step-item" id="nav5"><div class="step-num" id="num5">6</div><div class="step-label">Dashboard</div></div>
+    <div class="step-item" id="nav5"><div class="step-num" id="num5">6</div><div class="step-label">Execution</div></div>
+    <div class="step-sep"></div>
+    <div class="step-item" id="nav6"><div class="step-num" id="num6">7</div><div class="step-label">Dashboard</div></div>
   </div>
 
   <!-- ═══ SCREEN 1 — Projet ═══ -->
@@ -571,7 +626,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="card">
       <div class="card-head">
         <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>Software (C sources)</div>
-        <div class="card-sub">Separate your files by category for clear visibility of what's saved</div>
+        <div class="card-sub">Separate your files by category. You can remove, replace or add files at any time — recompile the firmware after a change.</div>
       </div>
       <div class="upload-3col">
 
@@ -664,7 +719,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
             <p style="font-size:12px">Functional specifications</p>
             <span>.pdf · .docx · .txt</span>
           </div>
-          <div class="file-item" id="file-req" style="display:none"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span id="fname-req">—</span><span class="file-status">✓</span></div>
+          <div id="bin-files-list-req"></div>
         </div>
 
         <!-- I/O -->
@@ -676,12 +731,13 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
             <p style="font-size:12px">Signal matrix</p>
             <span>.csv · .xlsx · .arxml</span>
           </div>
-          <div class="file-item" id="file-io" style="display:none"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span id="fname-io">—</span><span class="file-status">✓</span></div>
+          <div id="bin-files-list-io"></div>
         </div>
 
       </div>
     </div>
 
+    <input type="file" id="sw-replace-input" style="display:none" onchange="swOnReplacePicked(this)"/>
     <div class="btn-row">
       <button class="btn-secondary" onclick="go(0)">Back</button>
       <button class="btn-primary" onclick="go(2)">Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
@@ -689,6 +745,51 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
   </div>
 
   <!-- ═══ SCREEN 3 — Tests & Scenarios ═══ -->
+  <!-- ═══ SCREEN — VEHICLE DYNAMICS (after Uploads) ═══ -->
+  <div class="screen" id="sc-vehicle">
+    <div class="card">
+      <div class="card-head vd-top">
+        <div>
+          <div class="card-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17h14M3 13l2-6h14l2 6v4H3z"/><circle cx="7.5" cy="17" r="1.8"/><circle cx="16.5" cy="17" r="1.8"/></svg>Vehicle dynamics</div>
+          <div class="card-sub">Choose the ego vehicle simulated by the dynamics model during the tests — a predefined vehicle or your own parameters</div>
+        </div>
+        <label class="vd-toggle"><input type="checkbox" id="vd-enabled" checked onchange="vdSetEnabled(this.checked)"/><span>Dynamics model enabled</span></label>
+      </div>
+
+      <div id="vd-off-note" style="display:none;font-size:12px;color:var(--text2);margin-bottom:14px">
+        Dynamics model disabled — scenarios will be replayed as recorded (no vehicle simulation).
+      </div>
+
+      <div id="vd-body">
+        <div class="vd-tabs">
+          <button id="vd-tab-preset" onclick="vdSetMode('preset')">Predefined vehicle</button>
+          <button id="vd-tab-custom" onclick="vdSetMode('custom')">Custom vehicle</button>
+        </div>
+
+        <div id="vd-panel-preset"><div class="vd-cards" id="vd-preset-cards"></div></div>
+
+        <div id="vd-panel-custom" style="display:none">
+          <div class="vd-lib">
+            <div class="vd-lib-head">
+              <span>Team library</span>
+              <button class="vd-mini" onclick="vdLibSave()">💾 Save this vehicle to the library</button>
+            </div>
+            <div id="vd-lib-list" style="font-size:12px;color:var(--text3)">—</div>
+          </div>
+          <div id="vd-form"></div>
+        </div>
+
+        <div id="vd-warnings"></div>
+        <div class="vd-summary" id="vd-summary"></div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="go(1)">Back</button>
+      <button class="btn-primary" id="vd-next" onclick="vdNext()">Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+    </div>
+  </div>
+
   <div class="screen" id="sc2">
 
     <!-- NIVEAU 1 : Choix principal -->
@@ -859,8 +960,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     </div>
 
     <div class="btn-row">
-      <button class="btn-secondary" onclick="go(1)">Back</button>
-      <button class="btn-primary" onclick="go(3)">Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+      <button class="btn-secondary" onclick="go(2)">Back</button>
+      <button class="btn-primary" onclick="go(4)">Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
     </div>
   </div>
 
@@ -895,7 +996,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </div>
 
       <div class="btn-row" style="margin-top:16px">
-        <button class="btn-secondary" onclick="go(2)">Back</button>
+        <button class="btn-secondary" onclick="go(3)">Back</button>
 
         <!-- Bouton 1 : Compiler -->
         <button class="btn-primary" id="btn-compile" onclick="compileFirmware()">
@@ -972,8 +1073,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <div class="grid-scenarios" id="scenario-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:14px"></div>
 
       <div class="btn-row" style="margin-top:14px">
-        <button class="btn-secondary" onclick="go(3)">← Back to compilation</button>
-        <button class="btn-primary" id="btn-go-dashboard" onclick="go(5)" disabled style="opacity:.4;cursor:not-allowed">
+        <button class="btn-secondary" onclick="go(4)">← Back to compilation</button>
+        <button class="btn-primary" id="btn-go-dashboard" onclick="go(6)" disabled style="opacity:.4;cursor:not-allowed">
           Voir le Dashboard <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </button>
       </div>
@@ -1102,7 +1203,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     </div>
 
     <div class="btn-row">
-      <button class="btn-secondary" onclick="go(3)">← Back to Execution</button>
+      <button class="btn-secondary" onclick="go(5)">← Back to Execution</button>
       <button class="btn-primary" onclick="startNewProject()">New project</button>
     </div>
   </div>
@@ -1366,7 +1467,7 @@ async function apiFetch(url, options={}){
 let PROJECT_ID = null, projName = '';
 let scenarios  = [];   // [{name, filename, file(File), status, signals, testVector}]
 let activeIdx  = 0;
-let detailOpenedFrom = 4;  // écran d'origine ('Open' cliqué depuis) — permet au bouton retour de ramener au bon endroit (2=Test Config, 4=Execution grid, 5=Dashboard)
+let detailOpenedFrom = 5;  // origin screen of 'Open' — lets the back button return to the right place (3=Test Config, 5=Execution grid, 6=Dashboard)
 let currentDetailExpected = {};      // expected_* du scénario actuellement ouvert
 let currentDetailFramesDetail = [];  // frames_detail du scénario actuellement ouvert
 let currentSelectedFrameIdx = null;  // index de la frame sélectionnée (null = vue globale)
@@ -1406,7 +1507,7 @@ function showAppContainer(){
 
 function startNewProject(){
   PROJECT_ID = null; projName = '';
-  scenarios = []; testVectors = []; buildReady = false;
+  scenarios = []; testVectors = []; buildReady = false; swReset(); vdReset();
   document.getElementById('proj-banner').classList.remove('show');
   showAppContainer();
   go(0);
@@ -1476,10 +1577,11 @@ async function loadDashboard(){
 function resumeProject(project){
   PROJECT_ID = project.project_id;
   projName   = project.name || '';
-  scenarios = []; testVectors = []; buildReady = false;
+  scenarios = []; testVectors = []; buildReady = false; swReset(); vdReset();
+  swLoad(); vdLoad();
   showBanner();
   showAppContainer();
-  go(2); // Tests & Scenarios — refreshScenarioListS3() se déclenche automatiquement
+  go(3); // Tests & Scenarios — refreshScenarioListS3() se déclenche automatiquement
   showToast(`✅ Project "${projName}" resumed`,'success');
 }
 
@@ -1513,8 +1615,9 @@ function go(n){
     document.getElementById('num'+i).innerHTML=i<n?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':(i+1);
   });
   window.scrollTo({top:0,behavior:'smooth'});
-  if(n===2) refreshScenarioListS3();
-  if(n===5) renderDashboard();
+  if(n===2) vdEnter();
+  if(n===3) refreshScenarioListS3();
+  if(n===6) renderDashboard();
 }
 
 function updatePath(){
@@ -1563,27 +1666,6 @@ async function createProject(){
 function showBanner(){ document.getElementById('banner-id').textContent=PROJECT_ID; document.getElementById('proj-banner').classList.add('show'); }
 
 // ── Upload fichier simple
-async function uploadFile(input,type){
-  const file=input.files[0]; if(!file) return;
-  if(!PROJECT_ID){ showToast('⚠️ Create a project first','error'); return; }
-  const ids={bin:['file-bin','fname-bin'],req:['file-req','fname-req'],io:['file-io','fname-io']};
-  const [fid,nid]=ids[type]||['',''];
-  document.getElementById(nid).textContent=`⏳ ${file.name}`;
-  document.getElementById(fid).style.display='flex';
-  if(DEMO){ await sleep(600); document.getElementById(nid).textContent=file.name; showToast(`✅ ${file.name}`,'success'); return; }
-  showLoader(`Upload ${file.name}...`);
-  try{
-    const ur=await apiFetch(`${API}/projects/${PROJECT_ID}/upload-url?filename=${encodeURIComponent(file.name)}`);
-    let ud=JSON.parse(await ur.text());
-    if(ud.body&&typeof ud.body==='string') ud=JSON.parse(ud.body);
-    const put=await fetch(ud.upload_url,{method:'PUT',body:file,headers:{'Content-Type':'application/octet-stream'}});
-    if(!put.ok) throw new Error(`S3 PUT ${put.status}`);
-    document.getElementById(nid).textContent=file.name;
-    showToast(`✅ ${file.name} → S3`,'success');
-  }catch(e){ document.getElementById(nid).textContent=`❌ ${file.name}`; showToast('❌ '+e.message,'error',6000); }
-  finally{ hideLoader(); }
-}
-
 // ── Upload vidéos → scénarios
 // Nouvelle fonction
 async function saveScenarios(){
@@ -1860,7 +1942,7 @@ function renderScenarioList(){
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         ${statusTag}
-        <button onclick="detailOpenedFrom=2;go(4);openScenarioDetail(${i})"
+        <button onclick="detailOpenedFrom=3;go(5);openScenarioDetail(${i})"
           style="padding:5px 12px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);
                  border-radius:4px;font-family:var(--mono);font-size:10px;color:var(--accent);cursor:pointer">
           ▶ Open
@@ -1919,7 +2001,7 @@ function renderScenarioGrid(){
                  : '<span class="tag tag-gray">PENDING</span>';
     const manualTag = sc.manualOverride ? ' <span style="font-size:8px;color:var(--amber)">✎ manual</span>' : '';
     return `
-      <div class="scenario-card ${status}" onclick="detailOpenedFrom=4;openScenarioDetail(${i})">
+      <div class="scenario-card ${status}" onclick="detailOpenedFrom=5;openScenarioDetail(${i})">
         <div class="scenario-card-thumb" id="grid-thumb-${i}">
           <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
@@ -2170,7 +2252,7 @@ async function launchAllTestsBulk(){
     const resp = await apiFetch(`${API}/projects/${PROJECT_ID}/run`, {
       method:  'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ mode: 'bulk', scenarios: scenariosPayload })
+      body: JSON.stringify({ mode: 'bulk', scenarios: scenariosPayload, vehicle: vehiclePayload() })
     });
 
     let data = JSON.parse(await resp.text());
@@ -2256,8 +2338,8 @@ async function openScenarioDetail(idx){
 
   const backBtn = document.getElementById('detail-back-btn');
   if(backBtn){
-    backBtn.textContent = detailOpenedFrom === 2 ? '← Back to Test Configuration'
-                         : detailOpenedFrom === 5 ? '← Back to Dashboard'
+    backBtn.textContent = detailOpenedFrom === 3 ? '← Back to Test Configuration'
+                         : detailOpenedFrom === 6 ? '← Back to Dashboard'
                          : '← Back to grid';
   }
 
@@ -2283,7 +2365,7 @@ function closeScenarioDetail(){
   // Ramène vers l'écran d'où "Open" a été cliqué (Test Configuration,
   // grille Execution, ou tableau Dashboard) — avant, le retour supposait
   // toujours la grille Execution, même si on venait de Test Configuration.
-  if(detailOpenedFrom === 2 || detailOpenedFrom === 5){
+  if(detailOpenedFrom === 3 || detailOpenedFrom === 6){
     go(detailOpenedFrom);
     return;
   }
@@ -2544,7 +2626,7 @@ function renderDashboard(){
                  : sc.status==='fail' ? '<span class="tag tag-red">FAIL</span>'
                  : '<span class="tag tag-gray">—</span>';
     const manualTag = sc.manualOverride ? ' <span style="font-size:8px;color:var(--amber)">✎ manual</span>' : '';
-    return `<tr style="cursor:pointer" onclick="detailOpenedFrom=5;go(4);openScenarioDetail(${i})">
+    return `<tr style="cursor:pointer" onclick="detailOpenedFrom=6;go(5);openScenarioDetail(${i})">
       <td>SC${i+1} — ${sc.name}</td>
       <td>${badge}${manualTag}</td>
       <td>${result.reason || '—'}</td>
@@ -2942,7 +3024,7 @@ function builderConfirmAndLaunch(){
 
   showToast(`✅ Vector created for ${sc.name}`,'success');
   closeBuilder();
-  go(4);
+  go(5);
   openScenarioDetail(videoIdx);
 }
 
@@ -3029,7 +3111,7 @@ function resetToTestConfig(){
   if(grid) grid.innerHTML = '';
 
   showToast('✅ Test cycle reset — pick a strategy to start over', 'success');
-  go(2);
+  go(3);
 }
 
 function selectStrategy(n){
@@ -3612,7 +3694,7 @@ function manConfirmAndLaunch(){
   tv.scenario=sc.name;
   testVectors.push(tv);
   showToast(`✅ Vector created for ${sc.name}`,'success');
-  go(4);
+  go(5);
   openScenarioDetail(videoIdx);
 }
 
@@ -3634,82 +3716,469 @@ function addLog(msg,type=''){
   d.textContent=`${t} ${msg}`;
   body.appendChild(d); body.scrollTop=body.scrollHeight;
 }
-async function uploadMultipleFiles(input, type){
-  const files = Array.from(input.files);
+// ══════════════════════════════════════════════
+// VEHICLE DYNAMICS (step 3) — predefined / custom vehicle
+// The vehicle config uses exactly the structure expected by the runner's
+// OCDEgo class: { params:{…}, engine:{…}, brake_n }.
+// ══════════════════════════════════════════════
+const VD_PRESETS = {
+  citadine: { label:'City car', desc:'Light, short wheelbase', cfg:{
+    params:{mass_kg:1000,wheelbase_m:2.5,cog_distance_from_front_axle_m:1.3,moment_of_inertia_z_kgpm2:1200,drag_coefficient:0.32,frontal_area_m2:2.0,tire_rolling_resistance:0.012,wheel_radius_m:0.29},
+    engine:{torque_curve:[[900,70],[2000,110],[3500,130],[5000,120],[6000,100]],gear_ratios:[3.7,2.0,1.3,0.95,0.76],final_drive:4.1,efficiency:0.90,idle_rpm:800,max_rpm:6000,upshift_rpm:5200,downshift_rpm:1800,engine_brake_nm_at_max_rpm:35},
+    brake_n:8000 }},
+  berline: { label:'Sedan', desc:'Mid-size, balanced', cfg:{
+    params:{mass_kg:1500,wheelbase_m:2.7,cog_distance_from_front_axle_m:1.2,moment_of_inertia_z_kgpm2:2500,drag_coefficient:0.28,frontal_area_m2:2.2,tire_rolling_resistance:0.011,wheel_radius_m:0.32},
+    engine:{torque_curve:[[900,120],[1500,190],[2500,250],[3500,280],[4500,275],[5500,250],[6500,210]],gear_ratios:[3.6,2.1,1.4,1.0,0.8,0.65],final_drive:3.7,efficiency:0.92,idle_rpm:900,max_rpm:6500,upshift_rpm:5800,downshift_rpm:2200,engine_brake_nm_at_max_rpm:60},
+    brake_n:11000 }},
+  suv: { label:'Heavy SUV', desc:'Heavy, long wheelbase', cfg:{
+    params:{mass_kg:2300,wheelbase_m:3.0,cog_distance_from_front_axle_m:1.4,moment_of_inertia_z_kgpm2:4200,drag_coefficient:0.38,frontal_area_m2:2.9,tire_rolling_resistance:0.013,wheel_radius_m:0.36},
+    engine:{torque_curve:[[800,250],[1500,420],[2000,450],[3000,420],[4000,340],[4800,260]],gear_ratios:[4.2,2.5,1.6,1.2,0.9,0.7],final_drive:3.9,efficiency:0.90,idle_rpm:800,max_rpm:4800,upshift_rpm:4000,downshift_rpm:1500,engine_brake_nm_at_max_rpm:70},
+    brake_n:14000 }},
+};
+
+// Field definitions: path, label, unit, [min,max], step, optional
+const VD_SECTIONS = [
+  {title:'Chassis & aerodynamics', items:[
+    {p:'params.mass_kg', l:'Mass', u:'kg', min:400, max:5000, step:10},
+    {p:'params.wheelbase_m', l:'Wheelbase', u:'m', min:1.5, max:4.5, step:0.01},
+    {p:'params.cog_distance_from_front_axle_m', l:'CoG – front axle distance', u:'m', min:0.3, max:4.2, step:0.01},
+    {p:'params.moment_of_inertia_z_kgpm2', l:'Yaw inertia', u:'kg·m²', min:200, max:15000, step:50},
+    {p:'params.drag_coefficient', l:'Drag coefficient Cd', u:'', min:0.1, max:1.2, step:0.01},
+    {p:'params.frontal_area_m2', l:'Frontal area', u:'m²', min:0.8, max:6, step:0.1},
+    {p:'params.tire_rolling_resistance', l:'Rolling resistance', u:'', min:0.004, max:0.05, step:0.001}]},
+  {title:'Tires', items:[
+    {p:'params.wheel_radius_m', l:'Wheel radius', u:'m', min:0.2, max:0.5, step:0.005},
+    {p:'params.tire_cornering_stiffness', l:'Cornering stiffness Cα (optional)', u:'/rad', min:2, max:20, step:0.5, opt:true, ph:'auto (10)'},
+    {p:'params.tire_longitudinal_stiffness', l:'Longitudinal stiffness Csx (optional)', u:'', min:1, max:30, step:0.5, opt:true, ph:'auto'}]},
+  {title:'Engine & gearbox', items:[
+    {p:'engine.final_drive', l:'Final drive ratio', u:'', min:2, max:6, step:0.05},
+    {p:'engine.efficiency', l:'Driveline efficiency', u:'', min:0.5, max:1, step:0.01},
+    {p:'engine.idle_rpm', l:'Idle speed', u:'rpm', min:500, max:1500, step:50},
+    {p:'engine.max_rpm', l:'Max speed', u:'rpm', min:3000, max:10000, step:100},
+    {p:'engine.upshift_rpm', l:'Upshift at', u:'rpm', min:2000, max:10000, step:100},
+    {p:'engine.downshift_rpm', l:'Downshift at', u:'rpm', min:1000, max:6000, step:100},
+    {p:'engine.engine_brake_nm_at_max_rpm', l:'Engine braking torque', u:'Nm', min:0, max:200, step:5}]},
+  {title:'Brakes', items:[
+    {p:'brake_n', l:'Max total braking force', u:'N', min:2000, max:30000, step:100}]},
+];
+
+let VEH = { enabled:true, mode:'preset', preset:'berline', custom:null };
+let VD_LIB = [];            // team library (loaded from API)
+let VD_ERR = {};            // current validation errors {path: message}
+const vdClone = o => JSON.parse(JSON.stringify(o));
+function vdGet(o,p){ return p.split('.').reduce((a,k)=>a==null?undefined:a[k],o); }
+function vdSet(o,p,v){ const ks=p.split('.'); let a=o; ks.slice(0,-1).forEach(k=>{ a=a[k]; }); if(v===undefined) delete a[ks[ks.length-1]]; else a[ks[ks.length-1]]=v; }
+function vdEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function vdNewCustom(from){
+  const c = vdClone(VD_PRESETS[from||'berline'].cfg);
+  c.name = 'My vehicle';
+  return c;
+}
+
+// ── Validation (pure) ────────────────────────────
+function vdValidate(c){
+  const err={}, warn=[];
+  if(!c || typeof c!=='object') return {err:{name:'Missing configuration'},warn};
+  const name = (c.name||'').trim();
+  if(!name) err.name='Name required'; else if(name.length>40) err.name='40 characters max';
+  VD_SECTIONS.forEach(s=>s.items.forEach(f=>{
+    const raw = vdGet(c,f.p);
+    if(f.opt && (raw===undefined||raw===null||raw==='')) return;
+    const v = Number(raw);
+    if(raw===undefined||raw===null||raw===''||!isFinite(v)) err[f.p]='Required number';
+    else if(v<f.min||v>f.max) err[f.p]=`Must be between ${f.min} and ${f.max}`;
+  }));
+  const wb=Number(vdGet(c,'params.wheelbase_m')), cog=Number(vdGet(c,'params.cog_distance_from_front_axle_m'));
+  if(!err['params.wheelbase_m'] && !err['params.cog_distance_from_front_axle_m'] && (cog<0.2 || cog>wb-0.2))
+    err['params.cog_distance_from_front_axle_m']=`Must lie inside the wheelbase (0.2 – ${(wb-0.2).toFixed(2)} m)`;
+  const e=c.engine||{};
+  const idle=+e.idle_rpm, dn=+e.downshift_rpm, up=+e.upshift_rpm, mx=+e.max_rpm;
+  if(!err['engine.downshift_rpm'] && !err['engine.idle_rpm'] && dn<=idle) err['engine.downshift_rpm']='Must be above idle speed';
+  if(!err['engine.upshift_rpm'] && !err['engine.downshift_rpm'] && up<=dn) err['engine.upshift_rpm']='Must be above downshift speed';
+  if(!err['engine.max_rpm'] && !err['engine.upshift_rpm'] && mx<=up) err['engine.max_rpm']='Must be above upshift speed';
+  // gears
+  const g=e.gear_ratios;
+  if(!Array.isArray(g)||g.length<1||g.length>8) err['engine.gear_ratios']='1 to 8 gear ratios';
+  else if(g.some(x=>!isFinite(+x)||+x<0.3||+x>6)) err['engine.gear_ratios']='Each ratio must be between 0.3 and 6';
+  else if(g.some((x,i)=>i>0&&+x>=+g[i-1])) err['engine.gear_ratios']='Ratios must decrease (1st gear = highest)';
+  // torque curve
+  const t=e.torque_curve;
+  if(!Array.isArray(t)||t.length<3||t.length>20) err['engine.torque_curve']='3 to 20 points required';
+  else if(t.some(p=>!Array.isArray(p)||!isFinite(+p[0])||!isFinite(+p[1])||p[0]===''||p[1]==='')) err['engine.torque_curve']='Every point needs rpm and torque';
+  else if(t.some(p=>+p[0]<0||+p[1]<0||+p[1]>1500)) err['engine.torque_curve']='rpm ≥ 0, torque between 0 and 1500 Nm';
+  else if(t.some((p,i)=>i>0&&+p[0]<=+t[i-1][0])) err['engine.torque_curve']='rpm must strictly increase';
+  else if(isFinite(mx)&&+t[t.length-1][0]<mx*0.8) warn.push('Torque curve ends well below max rpm — torque will be held flat beyond the last point.');
+  const mass=+vdGet(c,'params.mass_kg'), csx=vdGet(c,'params.tire_longitudinal_stiffness');
+  if(csx!==undefined&&csx!==''&&isFinite(+csx)&&isFinite(mass)&&+csx*mass>15000)
+    warn.push(`Csx × mass = ${Math.round(csx*mass)} > 15 000: the model may stall around 6 m/s (numerical stability). Lower Csx.`);
+  return {err,warn};
+}
+
+// ── Derived indicators ───────────────────────────
+function vdStats(c){
+  try{
+    const t=c.engine.torque_curve.map(p=>[+p[0],+p[1]]);
+    const pw=t.map(p=>p[0]*p[1]*2*Math.PI/60/1000);
+    const peakKw=Math.max(...pw), peakNm=Math.max(...t.map(p=>p[1]));
+    const gTop=+c.engine.gear_ratios[c.engine.gear_ratios.length-1];
+    const top=2*Math.PI*+c.params.wheel_radius_m*+c.engine.max_rpm/60/(gTop*+c.engine.final_drive)*3.6;
+    const out={peakKw,peakNm,top,pwr:peakKw*1000/+c.params.mass_kg,t,pw};
+    return Object.values(out).every(v=>Array.isArray(v)||isFinite(v))?out:null;
+  }catch(e){ return null; }
+}
+
+function vdCurrentCfg(){
+  return VEH.mode==='preset' ? vdClone(VD_PRESETS[VEH.preset].cfg) : VEH.custom;
+}
+function vdCleanCustom(){
+  const c=vdClone(VEH.custom); const num=x=>x===''||x==null?undefined:Number(x);
+  VD_SECTIONS.forEach(s=>s.items.forEach(f=>{ const v=vdGet(c,f.p); vdSet(c,f.p,num(v)); }));
+  c.engine.gear_ratios=c.engine.gear_ratios.map(Number);
+  c.engine.torque_curve=c.engine.torque_curve.map(p=>[Number(p[0]),Number(p[1])]);
+  delete c.name; return c;
+}
+// Payload sent to the API (/vehicle and /run)
+function vehiclePayload(){
+  if(!VEH.enabled) return {enabled:false};
+  if(VEH.mode==='preset') return {enabled:true,mode:'preset',name:VD_PRESETS[VEH.preset].label,preset:VEH.preset,ocd_vehicle:vdClone(VD_PRESETS[VEH.preset].cfg)};
+  return {enabled:true,mode:'custom',name:(VEH.custom.name||'Custom').trim(),preset:null,ocd_vehicle:vdCleanCustom()};
+}
+function vdIsValid(){ return !VEH.enabled || VEH.mode==='preset' || Object.keys(vdValidate(VEH.custom).err).length===0; }
+
+// ── Rendering ────────────────────────────────────
+function vdRenderAll(){
+  document.getElementById('vd-enabled').checked=VEH.enabled;
+  document.getElementById('vd-body').classList.toggle('vd-off',!VEH.enabled);
+  document.getElementById('vd-off-note').style.display=VEH.enabled?'none':'block';
+  document.getElementById('vd-tab-preset').classList.toggle('on',VEH.mode==='preset');
+  document.getElementById('vd-tab-custom').classList.toggle('on',VEH.mode==='custom');
+  document.getElementById('vd-panel-preset').style.display=VEH.mode==='preset'?'block':'none';
+  document.getElementById('vd-panel-custom').style.display=VEH.mode==='custom'?'block':'none';
+  vdRenderPresetCards();
+  if(VEH.mode==='custom'){ if(!VEH.custom) VEH.custom=vdNewCustom(); vdRenderForm(); vdRenderLib(); }
+  vdRefresh();
+}
+function vdRenderPresetCards(){
+  document.getElementById('vd-preset-cards').innerHTML = Object.entries(VD_PRESETS).map(([k,p])=>{
+    const s=vdStats(p.cfg), c=p.cfg.params;
+    return `<div class="vd-card ${VEH.preset===k?'sel':''}" onclick="vdPickPreset('${k}')">
+      <h4>${p.label}</h4><div class="sub">${p.desc}</div>
+      <dl><dt>Mass</dt><dd>${c.mass_kg} kg</dd><dt>Wheelbase</dt><dd>${c.wheelbase_m} m</dd>
+      <dt>Peak power</dt><dd>${s.peakKw.toFixed(0)} kW</dd><dt>Top speed</dt><dd>${s.top.toFixed(0)} km/h</dd></dl>
+      <button class="lnk" onclick="event.stopPropagation();vdCustomizePreset('${k}')">Customize this vehicle →</button></div>`;
+  }).join('');
+}
+function vdRenderForm(){
+  const c=VEH.custom;
+  let h=`<div class="vd-sec"><div class="vd-grid"><div class="vd-f" id="vd-f-name"><label>Vehicle name</label>
+    <div class="in"><input type="text" maxlength="40" value="${vdEsc(c.name)}" oninput="vdOnName(this.value)"/></div><div class="vd-err" id="vd-err-name"></div></div></div></div>`;
+  VD_SECTIONS.forEach(s=>{
+    h+=`<div class="vd-sec"><h5>${s.title}</h5><div class="vd-grid">`;
+    s.items.forEach(f=>{
+      const v=vdGet(c,f.p);
+      h+=`<div class="vd-f" id="vd-f-${f.p}"><label>${f.l}</label><div class="in">
+        <input type="number" step="${f.step}" min="${f.min}" max="${f.max}" ${f.ph?`placeholder="${f.ph}"`:''} value="${v===undefined?'':v}" oninput="vdOnField('${f.p}',this.value)"/>
+        ${f.u?`<span class="u">${f.u}</span>`:''}</div><div class="vd-err" id="vd-err-${f.p}"></div></div>`;
+    });
+    if(s.title==='Engine & gearbox'){
+      h+=`<div class="vd-f" id="vd-f-engine.gear_ratios" style="grid-column:1/-1"><label>Gear ratios (1st → last, comma separated)</label>
+        <div class="in"><input type="text" value="${vdEsc((c.engine.gear_ratios||[]).join(', '))}" oninput="vdOnGears(this.value)"/></div><div class="vd-err" id="vd-err-engine.gear_ratios"></div></div>
+        <div class="vd-f" id="vd-f-engine.torque_curve" style="grid-column:1/-1"><label>Full-load torque curve</label><div id="vd-tq"></div><div class="vd-err" id="vd-err-engine.torque_curve"></div></div>`;
+    }
+    h+='</div></div>';
+  });
+  document.getElementById('vd-form').innerHTML=h;
+  vdRenderTorque();
+}
+function vdRenderTorque(){
+  const t=VEH.custom.engine.torque_curve;
+  document.getElementById('vd-tq').innerHTML=`<table class="vd-tq"><tr><td style="font-size:10px;color:var(--text3)">rpm</td><td style="font-size:10px;color:var(--text3)">Torque (Nm)</td><td></td></tr>`+
+    t.map((p,i)=>`<tr><td><input type="number" value="${p[0]}" oninput="vdOnTq(${i},0,this.value)"/></td><td><input type="number" value="${p[1]}" oninput="vdOnTq(${i},1,this.value)"/></td>
+      <td><button class="vd-mini danger" title="Remove point" onclick="vdTqDel(${i})">✕</button></td></tr>`).join('')+
+    `</table><button class="vd-mini" style="margin-top:6px" onclick="vdTqAdd()">+ Add point</button>`;
+}
+function vdRenderLib(){
+  const el=document.getElementById('vd-lib-list');
+  if(!VD_LIB.length){ el.textContent='No saved vehicle yet — configure one below and save it to share it with your team.'; return; }
+  el.innerHTML=VD_LIB.map((v,i)=>`<div class="vd-lib-row"><span>${vdEsc(v.name)}</span>
+    <span class="meta">${vdEsc(vdGet(v.config,'params.mass_kg'))} kg${v.created_by?' · '+vdEsc(v.created_by):''}</span>
+    <button class="vd-mini" onclick="vdLibLoadItem(${i})">Load</button>
+    <button class="vd-mini danger" onclick="vdLibDelete(${i})">Delete</button></div>`).join('');
+}
+function vdRefresh(){
+  // errors
+  VD_ERR={}; let warn=[];
+  if(VEH.enabled && VEH.mode==='custom'){ const r=vdValidate(VEH.custom); VD_ERR=r.err; warn=r.warn; }
+  document.querySelectorAll('#vd-form .vd-f').forEach(f=>f.classList.remove('bad'));
+  document.querySelectorAll('#vd-form .vd-err').forEach(e=>e.textContent='');
+  Object.entries(VD_ERR).forEach(([p,m])=>{
+    const e=document.getElementById('vd-err-'+p), f=document.getElementById('vd-f-'+p);
+    if(e) e.textContent=m; if(f) f.classList.add('bad');
+  });
+  document.getElementById('vd-warnings').innerHTML=warn.map(w=>`<div class="vd-warn">⚠️ ${vdEsc(w)}</div>`).join('');
+  // summary
+  const cfg=vdCurrentCfg(), s=cfg&&vdStats(cfg), box=document.getElementById('vd-summary');
+  if(!s){ box.innerHTML='<div style="font-size:12px;color:var(--text3)">Complete the parameters to see the vehicle summary.</div>'; }
+  else{
+    const W=300,H=130,mr=Math.max(...s.t.map(p=>p[0])),mt=Math.max(s.peakNm,1),mp=Math.max(s.peakKw,1);
+    const pl=(arr,m)=>arr.map((v,i)=>`${(s.t[i][0]/mr*(W-30)+25).toFixed(1)},${(H-18-(v/m)*(H-30)).toFixed(1)}`).join(' ');
+    box.innerHTML=`<div class="vd-kpis">
+      <div class="vd-kpi"><div class="v">${(+cfg.params.mass_kg).toFixed(0)} kg</div><div class="l">Mass</div></div>
+      <div class="vd-kpi"><div class="v">${s.peakKw.toFixed(0)} kW</div><div class="l">Peak power</div></div>
+      <div class="vd-kpi"><div class="v">${s.peakNm.toFixed(0)} Nm</div><div class="l">Peak torque</div></div>
+      <div class="vd-kpi"><div class="v">${s.pwr.toFixed(0)} W/kg</div><div class="l">Power / weight</div></div>
+      <div class="vd-kpi"><div class="v">${s.top.toFixed(0)} km/h</div><div class="l">Theoretical top speed</div></div>
+      <div class="vd-kpi"><div class="v">${cfg.engine.gear_ratios.length}</div><div class="l">Gears</div></div></div>
+      <div><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-height:150px"><line x1="25" y1="${H-18}" x2="${W-5}" y2="${H-18}" stroke="var(--border2)"/><line x1="25" y1="8" x2="25" y2="${H-18}" stroke="var(--border2)"/>
+      <polyline fill="none" stroke="var(--accent)" stroke-width="1.8" points="${pl(s.t.map(p=>p[1]),mt)}"/>
+      <polyline fill="none" stroke="var(--amber)" stroke-width="1.8" points="${pl(s.pw,mp)}"/>
+      <text x="28" y="14" fill="var(--accent)" font-size="9">Torque (Nm)</text><text x="95" y="14" fill="var(--amber)" font-size="9">Power (kW)</text>
+      <text x="${W-5}" y="${H-5}" fill="var(--text3)" font-size="9" text-anchor="end">${mr} rpm</text></svg></div>`;
+  }
+  const n=document.getElementById('vd-next'); if(n){ const ok=vdIsValid(); n.disabled=!ok; n.style.opacity=ok?'1':'.4'; n.style.cursor=ok?'pointer':'not-allowed'; }
+}
+
+// ── Events ───────────────────────────────────────
+function vdSetEnabled(b){ VEH.enabled=!!b; vdRenderAll(); }
+function vdSetMode(m){ VEH.mode=m; if(m==='custom'&&!VEH.custom) VEH.custom=vdNewCustom(VEH.preset); vdRenderAll(); if(m==='custom') vdLibLoad(); }
+function vdPickPreset(k){ VEH.preset=k; vdRenderAll(); }
+function vdCustomizePreset(k){ VEH.preset=k; VEH.custom=vdNewCustom(k); VEH.custom.name=VD_PRESETS[k].label+' (custom)'; VEH.mode='custom'; vdRenderAll(); vdLibLoad(); }
+function vdOnName(v){ VEH.custom.name=v; vdRefresh(); }
+function vdOnField(p,v){ vdSet(VEH.custom,p,v===''?(VD_SECTIONS.some(s=>s.items.some(f=>f.p===p&&f.opt))?undefined:''):Number(v)); vdRefresh(); }
+function vdOnGears(v){ VEH.custom.engine.gear_ratios=v.split(',').map(x=>x.trim()).filter(x=>x!=='').map(Number); vdRefresh(); }
+function vdOnTq(i,j,v){ VEH.custom.engine.torque_curve[i][j]=v===''?'':Number(v); vdRefresh(); }
+function vdTqAdd(){ const t=VEH.custom.engine.torque_curve, l=t[t.length-1]||[1000,100]; t.push([(+l[0]||0)+500,+l[1]||100]); vdRenderTorque(); vdRefresh(); }
+function vdTqDel(i){ VEH.custom.engine.torque_curve.splice(i,1); vdRenderTorque(); vdRefresh(); }
+
+// ── Team library ─────────────────────────────────
+async function vdLibLoad(){
+  if(DEMO) { vdRenderLib(); return; }
+  try{
+    const r=await apiFetch(`${API}/vehicles`); let d=JSON.parse(await r.text()); if(d.body&&typeof d.body==='string') d=JSON.parse(d.body);
+    if(!r.ok) throw new Error(d.error||r.status);
+    VD_LIB=d.vehicles||[]; vdRenderLib();
+  }catch(e){ document.getElementById('vd-lib-list').textContent='Library unavailable: '+e.message; }
+}
+async function vdLibSave(){
+  const r0=vdValidate(VEH.custom);
+  if(Object.keys(r0.err).length){ showToast('⚠️ Fix the highlighted parameters before saving','error'); return; }
+  const cfg=vdCleanCustom(), name=VEH.custom.name.trim();
+  if(DEMO){ VD_LIB.push({id:'demo-'+Date.now(),name,config:cfg,created_by:'you'}); vdRenderLib(); showToast(`✅ "${name}" saved (demo)`,'success'); return; }
+  showLoader('Saving vehicle...');
+  try{
+    const r=await apiFetch(`${API}/vehicles`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,config:cfg})});
+    let d=JSON.parse(await r.text()); if(d.body&&typeof d.body==='string') d=JSON.parse(d.body);
+    if(!r.ok) throw new Error(d.error||r.status);
+    showToast(`✅ "${name}" saved to the team library`,'success'); await vdLibLoad();
+  }catch(e){ showToast('❌ '+e.message,'error',6000); } finally{ hideLoader(); }
+}
+function vdLibLoadItem(i){
+  const v=VD_LIB[i]; if(!v) return;
+  VEH.custom=Object.assign(vdClone(v.config),{name:v.name}); vdRenderAll(); showToast(`✅ "${v.name}" loaded`,'success');
+}
+async function vdLibDelete(i){
+  const v=VD_LIB[i]; if(!v||!confirm(`Delete "${v.name}" from the team library?`)) return;
+  if(!DEMO){
+    try{ const r=await apiFetch(`${API}/vehicles/${encodeURIComponent(v.id)}`,{method:'DELETE'}); if(!r.ok) throw new Error('HTTP '+r.status); }
+    catch(e){ showToast('❌ '+e.message,'error',6000); return; }
+  }
+  VD_LIB.splice(i,1); vdRenderLib();
+}
+
+// ── Persistence (per project) ────────────────────
+async function vdSave(){
+  if(!PROJECT_ID||DEMO) return true;
+  try{
+    const r=await apiFetch(`${API}/projects/${PROJECT_ID}/vehicle`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({vehicle:vehiclePayload()})});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return true;
+  }catch(e){ showToast('⚠️ Vehicle not saved on the server ('+e.message+') — it will still be sent with the run','error',5000); return false; }
+}
+function vdApply(p){
+  if(!p||typeof p!=='object') return;
+  VEH.enabled = p.enabled!==false;
+  if(p.mode==='custom' && p.ocd_vehicle){ VEH.mode='custom'; VEH.custom=Object.assign(vdClone(p.ocd_vehicle),{name:p.name||'Custom'}); }
+  else { VEH.mode='preset'; if(p.preset && VD_PRESETS[p.preset]) VEH.preset=p.preset; }
+}
+async function vdLoad(){
+  if(!PROJECT_ID||DEMO) return;
+  try{
+    const r=await apiFetch(`${API}/projects/${PROJECT_ID}/vehicle`); if(!r.ok) return;
+    let d=JSON.parse(await r.text()); if(d.body&&typeof d.body==='string') d=JSON.parse(d.body);
+    if(d.vehicle) vdApply(d.vehicle);
+  }catch(e){ console.warn('[VEHICLE LOAD]',e.message); }
+}
+function vdReset(){ VEH={enabled:true,mode:'preset',preset:'berline',custom:null}; }
+async function vdNext(){
+  if(!vdIsValid()){ showToast('⚠️ Fix the highlighted vehicle parameters','error'); return; }
+  await vdSave(); go(3);
+}
+function vdEnter(){ vdRenderAll(); if(VEH.mode==='custom') vdLibLoad(); }
+
+// ══════════════════════════════════════════════
+// SOFTWARE FILES — list / add / replace / delete after upload
+// ══════════════════════════════════════════════
+const SW_LIST_ID = {model:'bin-files-list-model', rte:'bin-files-list-rte', bsw:'bin-files-list-bsw', req:'bin-files-list-req', io:'bin-files-list-io'};
+const SW_LABEL   = {model:'Model', rte:'RTE', bsw:'BSW', req:'Requirements', io:'I/O signals'};
+const SW_ACCEPT  = {model:'.c,.h', rte:'.c,.h', bsw:'.c,.h', req:'.pdf,.docx,.txt', io:'.csv,.xlsx,.arxml'};
+const SW_SINGLE  = {req:true, io:true};   // one file at a time: a new upload replaces the old one
+let swFiles  = {model:[], rte:[], bsw:[], req:[], io:[]};   // {name,size,state:'uploading'|'ok'|'failed'|'deleting', file?}
+let swLoaded = false;   // true once the server list is known (or after an upload this session)
+let swReplaceTarget = null;
+
+function swFmt(n){ return n==null?'':n<1024?n+' B':n<1048576?(n/1024).toFixed(1)+' KB':(n/1048576).toFixed(1)+' MB'; }
+function swRender(cat){
+  const el=document.getElementById(SW_LIST_ID[cat]); if(!el) return;
+  const arr=swFiles[cat];
+  el.innerHTML = arr.map((f,i)=>{
+    const ico = f.state==='failed'
+      ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+      : f.state==='ok'
+      ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>'
+      : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>';
+    const busy = f.state==='uploading'||f.state==='deleting';
+    const status = f.state==='uploading'?'<span class="file-status" style="color:var(--amber);flex:none">UPLOADING</span>'
+                 : f.state==='deleting' ?'<span class="file-status" style="color:var(--amber);flex:none">DELETING</span>'
+                 : f.state==='failed'   ?'<span class="file-status" style="color:var(--red);flex:none">FAILED</span>'
+                 : '<span class="file-status" style="flex:none">✓</span>';
+    const btns = busy ? '' :
+      (f.state==='failed' && f.file ? `<button class="fbtn" title="Retry" onclick="swRetry('${cat}',${i})">Retry</button>` : '') +
+      (f.state==='ok' ? `<button class="fbtn" title="Replace with another file" onclick="swReplace('${cat}',${i})">Replace</button>` : '') +
+      `<button class="fbtn del" title="Remove" onclick="swDelete('${cat}',${i})">✕</button>`;
+    return `<div class="file-item ${f.state==='failed'?'failed':''}">${ico}<span>${vdEsc(f.name)}</span><span class="fsize">${swFmt(f.size)}</span>${status}${btns}</div>`;
+  }).join('') + (arr.length>1 && !SW_SINGLE[cat] ? `<button class="file-clear" onclick="swClear('${cat}')">Remove all ${SW_LABEL[cat]} files</button>` : '');
+}
+function swRenderAll(){ Object.keys(SW_LIST_ID).forEach(swRender); }
+function swReset(){ swFiles={model:[],rte:[],bsw:[],req:[],io:[]}; swLoaded=false; swRenderAll(); }
+
+// A change in the sources makes the compiled image obsolete
+function invalidateBuild(){
+  if(!buildReady && !DEMO) return;
+  const was=buildReady; buildReady=false;
+  const launch=document.getElementById('btn-launch-tests');
+  if(launch){ launch.disabled=true; launch.style.opacity='.4'; launch.style.cursor='not-allowed'; }
+  const bar=document.getElementById('build-status-bar');
+  if(bar && bar.style.display!=='none') setBuildStatus('failed','Sources changed — recompile the firmware',0);
+  const cb=document.getElementById('btn-compile');
+  if(cb){ cb.disabled=false; cb.lastChild && (cb.lastChild.textContent=' Compile firmware '); }
+  if(was) showToast('ℹ️ Sources changed — recompile the firmware before running tests','info',5000);
+}
+function swCompiling(){ const b=document.getElementById('btn-compile'); return !!(b && b.disabled && /progress/i.test(b.textContent)); }
+
+async function swPresign(name){
+  const ur=await apiFetch(`${API}/projects/${PROJECT_ID}/upload-url?filename=${encodeURIComponent(name)}`);
+  let ud=JSON.parse(await ur.text()); if(ud.body&&typeof ud.body==='string') ud=JSON.parse(ud.body);
+  if(!ud.upload_url) throw new Error(ud.error||'no upload_url');
+  return ud;
+}
+async function swUploadEntry(cat, entry){
+  entry.state='uploading'; swRender(cat);
+  if(DEMO){ await sleep(300); entry.state='ok'; entry.file=null; swRender(cat); return true; }
+  try{
+    const ud=await swPresign(entry.name);
+    const put=await fetch(ud.upload_url,{method:'PUT',body:entry.file,headers:{'Content-Type':'application/octet-stream'}});
+    if(!put.ok) throw new Error('S3 PUT '+put.status);
+    // register the category (S3 folder is flat) — non-blocking
+    try{ await apiFetch(`${API}/projects/${PROJECT_ID}/files`,{method:'POST',headers:{'Content-Type':'application/json'},
+         body:JSON.stringify({filename:entry.name,category:cat,key:ud.key||ud.s3_key||null,size:entry.size})}); }
+    catch(e){ console.warn('[FILES REGISTER]',e.message); }
+    entry.state='ok'; entry.file=null; swLoaded=true; swRender(cat); return true;
+  }catch(e){ entry.state='failed'; entry.error=e.message; swRender(cat); return false; }
+}
+async function swDeleteRemote(cat, name){
+  if(DEMO){ await sleep(150); return; }
+  const r=await apiFetch(`${API}/projects/${PROJECT_ID}/files?filename=${encodeURIComponent(name)}&category=${encodeURIComponent(cat)}`,{method:'DELETE'});
+  if(!r.ok && r.status!==404){ let m='HTTP '+r.status; try{ const d=JSON.parse(await r.text()); m=d.error||m; }catch(_){} throw new Error(m); }
+}
+
+// Entry point from the <input type=file> elements
+async function swHandleInput(input, cat){
+  const files=Array.from(input.files); input.value='';
   if(!files.length) return;
   if(!PROJECT_ID){ showToast('⚠️ Create a project first','error'); return; }
-
-  // Catégorisation visuelle uniquement — tous les fichiers vont dans le
-  // même dossier S3 plat projects/{id}/software/, comme avant.
-  // Ça garde la compatibilité avec le pipeline CodeBuild existant tout
-  // en donnant au testeur une vue claire de ce qu'il enregistre.
-  const listIds = { model:'bin-files-list-model', rte:'bin-files-list-rte', bsw:'bin-files-list-bsw' };
-  const listId  = listIds[type] || 'bin-files-list-model';
-  const list    = document.getElementById(listId);
-
-  for(const file of files){
-    // Item en attente
-    const itemEl = document.createElement('div');
-    itemEl.className = 'file-item';
-    itemEl.innerHTML = `
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-      </svg>
-      <span>⏳ ${file.name}</span>
-      <span class="file-status" style="color:var(--amber)">RUNNING</span>
-    `;
-    list.appendChild(itemEl);
-
-    if(DEMO){
-      await sleep(300);
-      itemEl.innerHTML = `
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2">
-          <polyline points="20 6 9 17 4 12"/>
-        </svg>
-        <span>${file.name}</span>
-        <span class="file-status">✓</span>
-      `;
-      continue;
-    }
-
-    try{
-      // Obtenir presigned URL
-      const ur = await apiFetch(
-        `${API}/projects/${PROJECT_ID}/upload-url?filename=${encodeURIComponent(file.name)}`
-      );
-      let ud = JSON.parse(await ur.text());
-      if(ud.body && typeof ud.body==='string') ud = JSON.parse(ud.body);
-
-      // Upload S3
-      const put = await fetch(ud.upload_url,{
-        method:'PUT', body:file,
-        headers:{'Content-Type':'application/octet-stream'}
-      });
-      if(!put.ok) throw new Error(`S3 PUT ${put.status}`);
-
-      // Succès
-      itemEl.innerHTML = `
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2">
-          <polyline points="20 6 9 17 4 12"/>
-        </svg>
-        <span>${file.name}</span>
-        <span class="file-status">✓ software/</span>
-      `;
-
-    }catch(e){
-      itemEl.innerHTML = `
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"/>
-          <line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-        <span>${file.name}</span>
-        <span class="file-status" style="color:var(--red)">❌ FAILED</span>
-      `;
-    }
+  if(swCompiling()){ showToast('⚠️ Compilation in progress — wait for it to finish','error'); return; }
+  const list = SW_SINGLE[cat] ? files.slice(0,1) : files;
+  for(const file of list){
+    if(SW_SINGLE[cat] && swFiles[cat].length){ await swReplaceWith(cat, 0, file); continue; }
+    await swAddFile(cat, file);
   }
-
-  showToast(`✅ ${files.length} file(s) uploaded`,'success');
+  invalidateBuild();
+  showToast(`✅ ${list.length} file(s) uploaded`,'success');
 }
+function swOtherCat(name, cat){
+  for(const c of ['model','rte','bsw']) if(c!==cat && swFiles[c].some(f=>f.name===name)) return c;
+  return null;
+}
+async function swAddFile(cat, file){
+  if(!/\./.test(file.name)){ showToast('⚠️ '+file.name+': unsupported file','error'); return; }
+  const other=swOtherCat(file.name,cat);
+  if(other && !confirm(`"${file.name}" already exists in ${SW_LABEL[other]}.\nAll sources share one folder, so uploading it here will overwrite it. Continue?`)) return;
+  if(other){ swFiles[other]=swFiles[other].filter(f=>f.name!==file.name); swRender(other); }
+  let entry=swFiles[cat].find(f=>f.name===file.name);
+  if(entry){ entry.size=file.size; entry.file=file; }       // same name = overwrite in place
+  else { entry={name:file.name,size:file.size,state:'uploading',file}; swFiles[cat].push(entry); }
+  await swUploadEntry(cat, entry);
+}
+async function swReplaceWith(cat, idx, file){
+  const old=swFiles[cat][idx]; if(!old) return;
+  const entry={name:file.name,size:file.size,state:'uploading',file};
+  if(old.name===file.name){ old.size=file.size; old.file=file; await swUploadEntry(cat, old); return; }
+  swFiles[cat][idx]=entry;
+  const ok=await swUploadEntry(cat, entry);
+  if(ok){ try{ await swDeleteRemote(cat, old.name); }catch(e){ showToast(`⚠️ "${old.name}" could not be removed: ${e.message}`,'error',6000); } }
+  else { swFiles[cat][idx]=old; swRender(cat); }   // keep the previous file if the new one failed
+}
+function swReplace(cat, idx){
+  if(swCompiling()){ showToast('⚠️ Compilation in progress','error'); return; }
+  swReplaceTarget={cat,idx};
+  const inp=document.getElementById('sw-replace-input'); inp.accept=SW_ACCEPT[cat]; inp.value=''; inp.click();
+}
+async function swOnReplacePicked(input){
+  const file=input.files[0], t=swReplaceTarget; input.value=''; swReplaceTarget=null;
+  if(!file||!t) return;
+  await swReplaceWith(t.cat, t.idx, file); invalidateBuild();
+  showToast(`✅ ${file.name} replaced`,'success');
+}
+async function swRetry(cat, idx){
+  const e=swFiles[cat][idx]; if(!e||!e.file) return;
+  await swUploadEntry(cat, e); invalidateBuild();
+}
+async function swDelete(cat, idx){
+  const f=swFiles[cat][idx]; if(!f) return;
+  if(swCompiling()){ showToast('⚠️ Compilation in progress — wait for it to finish','error'); return; }
+  if(f.state==='ok' && !confirm(`Remove "${f.name}" from ${SW_LABEL[cat]}?`)) return;
+  if(f.state==='failed'){ swFiles[cat].splice(idx,1); swRender(cat); return; }
+  f.state='deleting'; swRender(cat);
+  try{ await swDeleteRemote(cat, f.name); swFiles[cat].splice(swFiles[cat].indexOf(f),1); swRender(cat); invalidateBuild(); showToast(`🗑️ ${f.name} removed`,'success'); }
+  catch(e){ f.state='ok'; swRender(cat); showToast('❌ '+e.message,'error',6000); }
+}
+async function swClear(cat){
+  if(swCompiling()){ showToast('⚠️ Compilation in progress','error'); return; }
+  if(!confirm(`Remove all ${SW_LABEL[cat]} files (${swFiles[cat].length})?`)) return;
+  for(const f of swFiles[cat].slice()){
+    if(f.state==='failed'){ swFiles[cat].splice(swFiles[cat].indexOf(f),1); continue; }
+    f.state='deleting'; swRender(cat);
+    try{ await swDeleteRemote(cat,f.name); swFiles[cat].splice(swFiles[cat].indexOf(f),1); }
+    catch(e){ f.state='ok'; showToast(`❌ ${f.name}: ${e.message}`,'error',6000); }
+  }
+  swRender(cat); invalidateBuild();
+}
+// Load what is already on the server (project resume)
+async function swLoad(){
+  if(!PROJECT_ID||DEMO) return;
+  try{
+    const r=await apiFetch(`${API}/projects/${PROJECT_ID}/files`); if(!r.ok) throw new Error('HTTP '+r.status);
+    let d=JSON.parse(await r.text()); if(d.body&&typeof d.body==='string') d=JSON.parse(d.body);
+    swFiles={model:[],rte:[],bsw:[],req:[],io:[]};
+    (d.files||[]).forEach(f=>{ const c=SW_LIST_ID[f.category]?f.category:'model'; swFiles[c].push({name:f.name,size:f.size,state:'ok'}); });
+    swLoaded=true; swRenderAll();
+  }catch(e){ console.warn('[FILES LOAD]',e.message); }
+}
+// Backwards-compatible names used by the existing markup
+function uploadMultipleFiles(input,type){ return swHandleInput(input,type); }
+function uploadFile(input,type){ return swHandleInput(input,type); }
+
 // ══════════════════════════════════════════════
 // COMPILER LE FIRMWARE
 // ══════════════════════════════════════════════
@@ -3717,7 +4186,10 @@ async function uploadMultipleFiles(input, type){
 async function compileFirmware(){
   if(!PROJECT_ID){ showToast('⚠️ Create a project first','error'); return; }
   if(scenarios.length === 0){
-    showToast('⚠️ Upload videos first (step 2)','error'); return;
+    showToast('⚠️ Upload videos first (Test Configuration)','error'); return;
+  }
+  if(swLoaded && !DEMO && swFiles.model.length+swFiles.rte.length+swFiles.bsw.length===0){
+    showToast('⚠️ No C source file — upload at least one file in Uploads','error'); return;
   }
 
   const btn = document.getElementById('btn-compile');
@@ -3899,7 +4371,8 @@ function launchAllTests(){
   if(scenarios.length === 0){
     showToast('⚠️ No scenario available','error'); return;
   }
-  go(4);
+  if(!vdIsValid()){ showToast('⚠️ Invalid custom vehicle — fix it in the Vehicle step','error'); go(2); return; }
+  go(5);
   launchAllTestsBulk();
 }
 function clearLog(){ document.getElementById('bench-log-body').innerHTML=''; }
@@ -4296,7 +4769,7 @@ function scConfirm() {
   }
 
   closeScModal();
-  go(4);
+  go(5);
   openScenarioDetail(scModalIdx);
 }
 
