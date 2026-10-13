@@ -1109,6 +1109,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
             <div id="detail-inputs" style="margin-top:8px;display:flex;flex-direction:column;gap:6px"></div>
           </div>
 
+          <div id="vd-exec-card" style="display:none"></div>
           <div id="vp-host-detail"></div>
 
           <div class="card" style="margin:0">
@@ -2426,6 +2427,7 @@ function renderDetailGeneric(idx){
   document.getElementById('detail-description').textContent =
     description || 'No description available for this test';
   vpMount('vp-host-detail', () => ({tv, desc: description}));
+  vdRenderExecCard(result);
 
   // Inputs — tout ce qui n'est pas expected_* ni 'scenario'
   const inputsEl = document.getElementById('detail-inputs');
@@ -4284,6 +4286,29 @@ function vpManeuverText(m){
   const dir={right:'drift to the right',left:'drift to the left',none:'straight road, no drift'}[m.direction];
   return `${Math.round(m.speed_kmh)} km/h · ${dir}`+(m.direction!=='none'?` · starts at ${m.drift_start_s} s`+(m.mode==='path'?` · ${m.lateral_rate_mps} m/s lateral`:` · steering ${m.steering_deg}°`):'');
 }
+// ── Dynamique véhicule appliquée pendant l'exécution (result.vehicle_dynamics écrit par le conteneur de test)
+function vdRenderExecCard(result){
+  const el=document.getElementById('vd-exec-card'); if(!el) return;
+  const vd=result && result.vehicle_dynamics;
+  if(!vd){ el.style.display='none'; el.innerHTML=''; return; }
+  el.style.display='block';
+  const head=`<div class="card-title" style="font-size:11px">🚗 Vehicle dynamics <span style="font-weight:400;color:var(--text3)">(OCD, applied to this run)</span></div>`;
+  if(!vd.applied){
+    el.innerHTML=`<div class="card" style="margin:0">${head}<div style="margin-top:6px;font-size:11px;color:var(--amber);line-height:1.5">Not applied: ${vdEsc(vd.reason||'profile unavailable')}.<br>The firmware received the fixed speed of the test case.</div></div>`;
+    return;
+  }
+  const fr=(result.frames_detail||[]).filter(f=>f.speed_input!=null&&f.t_s!=null);
+  const m=vd.maneuver||{}, ev=vd.events||{};
+  const rows=[
+    ['Vehicle', vdEsc(vd.vehicle||'—')],
+    ['Maneuver', m.direction&&m.direction!=='none' ? `drift ${m.direction} from ${m.drift_start_s} s` : 'straight'],
+    ['Line crossed (model)', ev.crossing_time_s!=null ? ev.crossing_time_s+' s' : '—'],
+  ].map(r=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text3)">${r[0]}</span><span style="font-family:var(--mono)">${r[1]}</span></div>`).join('');
+  const chart = fr.length>1 ? vpChart('Speed sent to the firmware','km/h',[{x:fr.map(f=>f.t_s),y:fr.map(f=>f.speed_input)}],{vline: ev.crossing_time_s!=null?ev.crossing_time_s:null}) : '';
+  const warn=(vd.warnings||[]).map(w=>`<div style="font-size:10px;color:var(--amber);margin-top:6px">⚠ ${vdEsc(w)}</div>`).join('');
+  el.innerHTML=`<div class="card" style="margin:0">${head}<div style="margin-top:6px">${rows}</div><div style="margin-top:8px">${chart}</div>${warn}<div style="font-size:10px;color:var(--text3);margin-top:6px;line-height:1.4">The speed input of the firmware follows the vehicle model frame by frame. The camera image still comes from the video.</div></div>`;
+}
+
 function vpChart(title, unit, series, opt={}){
   const W=360,H=150,L=34,R=8,T=14,B=22;
   const xs=series.flatMap(s=>s.x), ys=series.flatMap(s=>s.y).concat(opt.hlines||[]);
