@@ -1110,7 +1110,6 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           </div>
 
           <div id="vd-exec-card" style="display:none"></div>
-          <div id="vp-host-detail"></div>
 
           <div class="card" style="margin:0">
             <div class="card-title" style="font-size:11px">📊 Results (outputs)</div>
@@ -2426,7 +2425,6 @@ function renderDetailGeneric(idx){
   const description = result.description || tv._description || tv.description || '';
   document.getElementById('detail-description').textContent =
     description || 'No description available for this test';
-  vpMount('vp-host-detail', () => ({tv, desc: description}));
   vdRenderExecCard(result);
 
   // Inputs — tout ce qui n'est pas expected_* ni 'scenario'
